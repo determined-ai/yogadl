@@ -1,3 +1,6 @@
 mypy
 black
 flake8
+lmdb
+tensorflow<2
+tensorflow_datasets<2
