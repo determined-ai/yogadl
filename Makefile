@@ -10,3 +10,11 @@ flake8:
 
 mypy:
 	mypy yogadl
+
+fmt:
+	$ black .
+
+TEST_EXPR ?= ""
+
+test:
+	pytest -v -k $(TEST_EXPR) tests/

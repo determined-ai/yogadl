@@ -3,64 +3,41 @@ The core interfaces of the yoga data layer.
 """
 
 import abc
-from typing import Any, Callable, Dict, Iterator, List
+from typing import Any, Callable, Optional, Union
+
+import tensorflow
 
 
-class Stream(metaclass=abc.ABCMeta):
+# TODO: Make sure users are not required to have TF, PyTorch,
+# TP dataflows are all installed to us this.
+Submittable = Union[
+    tensorflow.data.Dataset,
+]
+
+
+class Stream:
     """
-    The base class for objects returned by DataRef.stream().
-
-    Conceptually, the core component of a Stream is an iterator factory that produce samples from
-    the underlying dataset according to the arguments passed to DataRef.stream().
+    Stream contains a generator of data and other required information
+    to feed into framework specific data APIs.
     """
 
     def __init__(
         self,
-        iterator_factory: Callable[[], Iterator],
-        epoch_len: int,
-        stream_len: int,
+        iterator_fn: Callable,
+        length: int,
         output_types: Any = None,
         output_shapes: Any = None,
     ):
-        self._iterator_factory = iterator_factory
-        self._epoch_len = epoch_len
-        self._stream_len = stream_len
-        self._output_types = output_types
-        self._output_shapes = output_shapes
+        self.iterator_fn = iterator_fn
+        self.length = length
+        self.output_types = output_types
+        self.output_shapes = output_shapes
 
-    def get_epoch_len(self) -> int:
-        """
-        Return the length of the epoch, or "how many records exist in the dataset".
-
-        This will not match the actual number of records produced by this stream if options like
-        sharding or a start offset.
-        """
-        return self._epoch_len
-
-    def get_output_types(self) -> Any:
-        """
-        Return the output types stored with the dataset.
-
-        This method is intended for integrating with the tf.data.Dataset API.
-        """
-        return self._output_types
-
-    def get_output_shapes(self) -> Any:
-        """
-        Return the output shapes stored with the dataset.
-
-        This method is intended for integrating with the tf.data.Dataset API.
-        """
-        return self._output_types
+    def __iter__(self) -> Any:
+        return self.iterator_fn()
 
     def __len__(self) -> int:
-        """
-        Return the stream length, or "how many records will be produced by this stream".
-        """
-        return self._stream_len
-
-    def __iter__(self) -> Iterator:
-        return self._iterator_factory()
+        return self.length
 
 
 class DataRef(metaclass=abc.ABCMeta):
@@ -81,20 +58,14 @@ class DataRef(metaclass=abc.ABCMeta):
         self,
         start_offset: int = 0,
         shuffle: bool = False,
-        shuffle_seed: int = -1,
-        shard_size: int = 1,
+        shuffle_seed: Optional[int] = None,
         shard_rank: int = 0,
+        number_of_shards: int = 1,
     ) -> Stream:
-        """
-        Produce a Stream object from a DataRef object.
-        """
         pass
 
     @abc.abstractmethod
-    def epoch_len(self) -> int:
-        """
-        All must be stored with metadata about how long they are.
-        """
+    def __len__(self) -> int:
         pass
 
 
@@ -117,39 +88,23 @@ class Storage(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def list_datasets(self) -> List[Dict[str, List[int]]]:
+    def submit(self, data: Submittable, dataset_id: str, dataset_version: str) -> None:
         """
-        List the datsets and versions in this storage.
-        """
-        pass
-
-    @abc.abstractmethod
-    def submit(
-        self, data: Any, dataset_id: str, dataset_version: int = 0, allow_overwrite: bool = False,
-    ) -> None:
-        """
-        Iterate through a dataset and save it to storage.
+        Stores dataset to a cache.
         """
         pass
 
     @abc.abstractmethod
-    def fetch(self, dataset_id: str, dataset_version: int = 0) -> DataRef:
+    def fetch(self, dataset_id: str, dataset_version: str) -> DataRef:
         """
-        Fetch a dataset from storage and provide a DataRef for streaming from it.
+        Fetch a dataset from storage and provide a DataRef for streaming it.
         """
         pass
 
     @abc.abstractmethod
-    def cacheable(
-        self, dataset_id: str, dataset_version: int = 0
-    ) -> Callable[[Callable[[], Any]], Callable[[], DataRef]]:
+    def cacheable(self, dataset_id: str, dataset_version: str) -> Callable:
         """
-        A decorator which encompases calls to submit and fetch.
-
-        The decorated function should return a dataset or a tuple of datasets. If the dataset is
-        already cached, the function will not be executed.
-
-        This method is capable of providing race-free access to the cache if multiple workers are
-        attempting to submit-or-fetch the same dataset simultaneously.
+        A decorator that calls submit and fetch and is responsible for coordinating
+        amongst instatiations of Storage in different processes.
         """
         pass

@@ -1,3 +1,7 @@
 mypy
 black
 flake8
+lmdb
+pickle
+filelock
+json
