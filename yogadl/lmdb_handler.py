@@ -54,11 +54,7 @@ def serialize_generator_to_lmdb(
     # although it has a context manager interface
     txn = db.begin(write=True)
     dataset_entries = 0
-    while True:
-        try:
-            data = next(dataset_generator)
-        except StopIteration:
-            break
+    for data in dataset_generator:
         txn = put_or_grow(
             txn=txn,
             key="{:08}".format(dataset_entries).encode("ascii"),

@@ -12,7 +12,7 @@ mypy:
 	mypy yogadl
 
 fmt:
-	$ black .
+	black .
 
 TEST_EXPR ?= ""
 

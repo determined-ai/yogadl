@@ -43,7 +43,7 @@ class LFSStorage(core.Storage):
         """
         _ = self._create_cache(data=data, dataset_id=dataset_id, dataset_version=dataset_version)
 
-    def fetch(self, dataset_id: str, dataset_version: str) -> dataref.LfsDataRef:
+    def fetch(self, dataset_id: str, dataset_version: str) -> dataref.LFSDataRef:
         """
         Fetch a dataset from storage and provide a DataRef
         for streaming it.
@@ -53,7 +53,7 @@ class LFSStorage(core.Storage):
         )
         assert cache_filepath.exists()
 
-        return dataref.LfsDataRef(cache_filepath=cache_filepath)
+        return dataref.LFSDataRef(cache_filepath=cache_filepath)
 
     def cacheable(self, dataset_id: str, dataset_version: str) -> Callable:
         """
@@ -63,7 +63,7 @@ class LFSStorage(core.Storage):
         """
 
         def wrap(f: Callable) -> Callable:
-            def create_dataref(*args: Any, **kwargs: Any) -> dataref.LfsDataRef:
+            def create_dataref(*args: Any, **kwargs: Any) -> dataref.LFSDataRef:
                 with self._lock_this_dataset_version(dataset_id, dataset_version):
                     cache_filepath = self._get_cache_filepath(
                         dataset_id=dataset_id, dataset_version=dataset_version
@@ -78,7 +78,7 @@ class LFSStorage(core.Storage):
 
                     assert cache_filepath is not None
 
-                return dataref.LfsDataRef(cache_filepath=cache_filepath)
+                return dataref.LFSDataRef(cache_filepath=cache_filepath)
 
             return create_dataref
 

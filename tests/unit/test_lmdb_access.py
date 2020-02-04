@@ -86,8 +86,8 @@ def test_lmdb_access_keys_non_sequential_shard() -> None:
 
 def test_lmdb_access_shuffle() -> None:
     range_size = 10
-    seed_one = 69
-    seed_two = 420
+    seed_one = 41
+    seed_two = 421
     lmdb_checkpoint_path = util.create_lmdb_checkpoint_using_range(range_size=range_size)
 
     lmdb_reader_one = lmdb_handler.LmdbAccess(lmdb_path=lmdb_checkpoint_path)

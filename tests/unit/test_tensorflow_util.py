@@ -8,14 +8,7 @@ import tests.unit.util as util
 def test_read_tf_dataset() -> None:
     range_size = 10
     dataset = util.create_tf_dataset_from_range(range_size=range_size)
-    yield_output = []
-    data_yielder = tensorflow_util.read_tf_dataset(dataset=dataset)
-    while True:
-        try:
-            yield_output.append(next(data_yielder))
-        except StopIteration:
-            break
-
+    yield_output = list(tensorflow_util.read_tf_dataset(dataset=dataset))
     original_dataset = range(range_size)
     assert len(original_dataset) == len(yield_output)
     for original_data, yielded_data in zip(original_dataset, yield_output):

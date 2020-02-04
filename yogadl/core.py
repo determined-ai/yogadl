@@ -9,7 +9,7 @@ import tensorflow
 
 
 # TODO: Make sure users are not required to have TF, PyTorch,
-# TP dataflows are all installed to us this.
+# and TP dataflows all installed to use this.
 Submittable = Union[
     tensorflow.data.Dataset,
 ]

@@ -24,7 +24,7 @@ def test_storage_submit() -> None:
     dataset = util.create_tf_dataset_from_range(range_size=range_size)
     configurations = create_configurations()
     if get_cache_filepath(configurations, dataset_id, dataset_version).exists():
-        os.unlink(str(get_cache_filepath(configurations, dataset_id, dataset_version)))
+        get_cache_filepath(configurations, dataset_id, dataset_version).unlink()
 
     lfs_storage = storage.LFSStorage(configurations=configurations)
     lfs_storage.submit(data=dataset, dataset_id=dataset_id, dataset_version=dataset_version)
@@ -39,12 +39,12 @@ def test_storage_cacheable_single_threaded() -> None:
     dataset_version = "1"
     configurations = create_configurations()
     if get_cache_filepath(configurations, dataset_id, dataset_version).exists():
-        os.unlink(str(get_cache_filepath(configurations, dataset_id, dataset_version)))
+        get_cache_filepath(configurations, dataset_id, dataset_version).unlink()
 
     lfs_storage = storage.LFSStorage(configurations=configurations)
 
     @lfs_storage.cacheable(dataset_id, dataset_version)
-    def make_dataref(range_size: int) -> dataref.LfsDataRef:
+    def make_dataref(range_size: int) -> dataref.LFSDataRef:
         return util.create_tf_dataset_from_range(range_size=range_size)
 
     original_data_stream = make_dataref(range_size=original_range_size).stream()

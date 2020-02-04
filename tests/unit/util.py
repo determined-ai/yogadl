@@ -14,7 +14,7 @@ def create_lmdb_checkpoint_using_range(range_size: int) -> pathlib.Path:
     dataset = create_tf_dataset_from_range(range_size=range_size)
     checkpoint_path = pathlib.Path("/tmp/test_lmdb_checkpoint.mdb")
     if checkpoint_path.exists():
-        os.unlink(str(checkpoint_path))
+        checkpoint_path.unlink()
     assert not checkpoint_path.exists()
 
     tensorflow_util.serialize_tf_dataset_to_lmdb(

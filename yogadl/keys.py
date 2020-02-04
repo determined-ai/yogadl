@@ -11,19 +11,15 @@ def sequential_shard(keys: List[Any], shard_index: int, world_size: int) -> List
 
 
 def non_sequential_shard(keys: List[Any], shard_index: int, world_size: int) -> List[Any]:
-    index = shard_index
-    sharded_keys = []
-    while index < len(keys):
-        sharded_keys.append(keys[index])
-        index += world_size
-    return sharded_keys
+    key_indexes = list(range(shard_index, len(keys), world_size))
+    return [keys[idx] for idx in key_indexes]
 
 
 def shard_keys(
     keys: List[Any], shard_index: int, world_size: int, sequential: bool = False
 ) -> List[Any]:
-    assert shard_index >= 0
-    assert shard_index < world_size
+    assert shard_index >= 0, "Shard index must be greater or equal to zero."
+    assert shard_index < world_size, "Shard index must be less than world_size."
     if sequential:
         return sequential_shard(keys=keys, shard_index=shard_index, world_size=world_size)
     else:
