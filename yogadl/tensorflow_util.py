@@ -13,7 +13,7 @@ def read_tf_dataset(
     dataset: tf.data.Dataset,
 ) -> Generator[Tuple[Any, bool], None, None]:
     # TODO: Make this TF2.0 Compatible.
-    one_shot_iterator = dataset.make_one_shot_iterator()
+    get_next_element = dataset.make_one_shot_iterator().get_next()
     data_exists = True
     with tf.Session() as sess:
         while data_exists:
@@ -22,7 +22,7 @@ def read_tf_dataset(
                 # loop here. Probably best approach is to include log message
                 # specifying how many data items we have read and this should
                 # alert the user if we are stuck in an infinite loop.
-                next_data_item = sess.run(one_shot_iterator.get_next())
+                next_data_item = sess.run(get_next_element)
             except tf.errors.OutOfRangeError:
                 logging.info(f"Reached end of the dataset.")
                 next_data_item = None
