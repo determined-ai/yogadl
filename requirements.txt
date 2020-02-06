@@ -6,3 +6,6 @@ filelock
 tensorflow==1.14.0
 tensorflow_datasets<2
 pytest
+black
+mypy
+flake8
