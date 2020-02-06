@@ -2,6 +2,7 @@ mypy
 black
 flake8
 lmdb
-pickle
 filelock
-json
+tensorflow==1.14.0
+tensorflow_datasets<2
+pytest
