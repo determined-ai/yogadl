@@ -11,4 +11,9 @@ setup(
     author_email="info@determined.ai",
     url="https://www.github.com/determined-ai/yogadl/",
     packages=["yogadl"],
+    install_requires=[
+        "filelock",
+        "lmdb",
+        "tensorflow<2",
+    ]
 )
