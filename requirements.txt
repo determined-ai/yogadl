@@ -2,5 +2,7 @@ mypy
 black
 flake8
 lmdb
+filelock
 tensorflow<2
 tensorflow_datasets<2
+pytest
