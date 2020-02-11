@@ -19,5 +19,22 @@ fmt:
 
 TEST_EXPR ?= ""
 
-test:
-	pytest -v -k $(TEST_EXPR) tests/
+test-unit-gcp:
+	pytest -v -k $(TEST_EXPR) tests/unit/gcp
+
+test-unit-local:
+	pytest -v -k $(TEST_EXPR) tests/unit/local
+
+test-integration-gcp:
+	pytest -v -k $(TEST_EXPR) tests/integration/gcp
+
+test-integration-local:
+	pytest -v -k $(TEST_EXPR) tests/integration/local
+
+test-local: test-unit-local test-integration-local
+
+test-gcp: test-unit-gcp test-integration-gcp
+
+test: test-local
+
+test-all: test-local test-gcp

@@ -6,7 +6,7 @@ import yogadl.keys_operator as keys_operator
 import yogadl.lmdb_handler as lmdb_handler
 
 
-class LFSDataRef(core.DataRef):
+class LMDBDataRef(core.DataRef):
     def __init__(self, cache_filepath: pathlib.Path):
         self._lmdb_access = lmdb_handler.LmdbAccess(lmdb_path=cache_filepath)
         self._keys = self._lmdb_access.get_keys()

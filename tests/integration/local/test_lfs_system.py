@@ -1,22 +1,11 @@
 import numpy as np
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
 import tests.integration.util as util  # noqa: I202, I100
 
-import yogadl.dataref.lfs_dataref as lfs_dataref
+import yogadl.dataref.local_lmdb_dataref as lfs_dataref
 import yogadl.storage.lfs_storage as lfs_storage
 import yogadl.tensorflow_util as tf_utils
-
-
-def make_mnist_train_dataset() -> tf.data.Dataset:
-    mnist_builder = tfds.builder("mnist")
-    mnist_builder.download_and_prepare()
-    # We use test because for tfds version < 1.3 the
-    # train split is automatically shuffled, breaking
-    # the test.
-    mnist_train = mnist_builder.as_dataset(split="test")
-    return mnist_train
 
 
 def test_mnist_single_threaded() -> None:
@@ -26,13 +15,17 @@ def test_mnist_single_threaded() -> None:
     dataset_id = "mnist"
     dataset_version = "1"
 
+    util.cleanup_lfs_storage(
+        configurations=config, dataset_id=dataset_id, dataset_version=dataset_version
+    )
+
     @storage.cacheable(dataset_id=dataset_id, dataset_version=dataset_version)
-    def make_dataset() -> lfs_dataref.LFSDataRef:
-        return make_mnist_train_dataset()  # type: ignore
+    def make_dataset() -> lfs_dataref.LMDBDataRef:
+        return util.make_mnist_train_dataset()  # type: ignore
 
     stream_from_cache = make_dataset().stream()
     dataset_from_stream = tf_utils.make_tf_dataset(stream_from_cache)
-    original_dataset = make_mnist_train_dataset()
+    original_dataset = util.make_mnist_train_dataset()
 
     next_element_from_stream = dataset_from_stream.make_one_shot_iterator().get_next()
     next_element_from_orig = original_dataset.make_one_shot_iterator().get_next()

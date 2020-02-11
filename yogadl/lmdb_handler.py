@@ -150,5 +150,4 @@ class LmdbAccess:
         if not self._db_connection_open:
             self._open_lmdb()
 
-        assert key in self._keys
         return pickle.loads(self._txn.get(key))

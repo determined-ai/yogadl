@@ -2,7 +2,7 @@ import pathlib
 
 import tensorflow as tf
 
-import yogadl.dataref.lfs_dataref as dataref
+import yogadl.dataref.local_lmdb_dataref as dataref
 import yogadl.storage.lfs_storage as storage
 
 
@@ -47,7 +47,7 @@ def test_storage_cacheable_single_threaded() -> None:
     lfs_storage = storage.LFSStorage(configurations=configurations)
 
     @lfs_storage.cacheable(dataset_id, dataset_version)
-    def make_dataref(range_size: int) -> dataref.LFSDataRef:
+    def make_dataref(range_size: int) -> dataref.LMDBDataRef:
         return tf.data.Dataset.range(range_size)  # type: ignore
 
     original_data_stream = make_dataref(range_size=original_range_size).stream()

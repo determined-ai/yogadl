@@ -6,7 +6,7 @@ from typing import Any, Callable, Generator
 import filelock
 
 import yogadl.core as core
-import yogadl.dataref.lfs_dataref as dataref
+import yogadl.dataref.local_lmdb_dataref as dataref
 import yogadl.tensorflow_util as tensorflow_util
 
 
@@ -55,7 +55,7 @@ class LFSStorage(core.Storage):
         )
         logging.info(f"Serialized dataset {dataset_id}:{dataset_version} to: {cache_filepath}.")
 
-    def fetch(self, dataset_id: str, dataset_version: str) -> dataref.LFSDataRef:
+    def fetch(self, dataset_id: str, dataset_version: str) -> dataref.LMDBDataRef:
         """
         Fetch a dataset from storage and provide a DataRef
         for streaming it.
@@ -65,7 +65,7 @@ class LFSStorage(core.Storage):
         )
         assert cache_filepath.exists()
 
-        return dataref.LFSDataRef(cache_filepath=cache_filepath)
+        return dataref.LMDBDataRef(cache_filepath=cache_filepath)
 
     def cacheable(self, dataset_id: str, dataset_version: str) -> Callable:
         """
@@ -75,7 +75,7 @@ class LFSStorage(core.Storage):
         """
 
         def wrap(f: Callable) -> Callable:
-            def create_dataref(*args: Any, **kwargs: Any) -> dataref.LFSDataRef:
+            def create_dataref(*args: Any, **kwargs: Any) -> dataref.LMDBDataRef:
                 with self._lock_this_dataset_version(dataset_id, dataset_version):
                     cache_filepath = self._get_cache_filepath(
                         dataset_id=dataset_id, dataset_version=dataset_version
