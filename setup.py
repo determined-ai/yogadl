@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(
-    python_requires=">=3.5.0",
+    python_requires=">=3.6.0",
     version="0.1",
     name="yogadl",
     description="Yoga Data Layer, a flexible data layer for machine learning",
@@ -12,8 +12,12 @@ setup(
     url="https://www.github.com/determined-ai/yogadl/",
     packages=["yogadl"],
     install_requires=[
+        "async_generator",
         "filelock",
+        "google-cloud-storage",
         "lmdb",
+        "lomond",
         "tensorflow<2",
-    ]
+        "websockets",
+    ],
 )
