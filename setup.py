@@ -13,6 +13,7 @@ setup(
     packages=["yogadl"],
     install_requires=[
         "async_generator",
+        "boto3",
         "filelock",
         "google-cloud-storage",
         "lmdb",
