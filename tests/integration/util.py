@@ -2,6 +2,7 @@ import asyncio
 import threading
 from typing import Optional
 
+import boto3
 import google.cloud.storage as google_storage
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -9,6 +10,7 @@ import tensorflow_datasets as tfds
 import yogadl.rw_coordinator as rw_coordinator
 import yogadl.storage.gcs_storage as gcs_storage
 import yogadl.storage.lfs_storage as lfs_storage
+import yogadl.storage.s3_storage as s3_storage
 
 
 def make_mnist_train_dataset() -> tf.data.Dataset:
@@ -47,6 +49,19 @@ def cleanup_gcs_storage(
     blob = bucket.blob(str(gcs_cache_filepath))
     if blob.exists():
         blob.delete()
+
+
+def cleanup_s3_storage(
+    configurations: s3_storage.S3Configurations, dataset_id: str, dataset_version: str
+) -> None:
+    s3_cache_filepath = (
+        configurations.bucket_directory_path.joinpath(dataset_id)
+        .joinpath(dataset_version)
+        .joinpath("cache.mdb")
+    )
+
+    client = boto3.client("s3")
+    client.delete_object(Bucket=configurations.bucket, Key=str(s3_cache_filepath))
 
 
 class AccessServerHandler:
