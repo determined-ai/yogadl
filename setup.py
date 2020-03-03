@@ -34,7 +34,5 @@ setup(
         "lomond",
         "websockets",
     ],
-    extras_require={
-        "tf": ["tensorflow"]
-    }
+    extras_require={"tf": ["tensorflow"]},
 )

@@ -41,4 +41,5 @@ limitations under the License.
 
 The derived work can be found in this file:
 
-    - tests/performance/performance/test_imagenet.py
+    - tests/performance/imagenet/test_imagenet.py
+    - tests/performance/imagenet/resnet_preprocessing.py
