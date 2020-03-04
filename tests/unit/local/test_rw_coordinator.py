@@ -4,12 +4,12 @@ import urllib.parse
 from typing import List
 
 import lomond
-from tl.testing.thread import ThreadAwareTestCase, ThreadJoiner
+from tl.testing import thread
 
 import tests.unit.util as test_util
 
 import yogadl.constants as constants
-import yogadl.rw_coordinator as rw_coordinator
+from yogadl import rw_coordinator
 
 
 def read_and_sleep(
@@ -63,7 +63,7 @@ def write_and_die(bucket: str, cache_path: pathlib.Path, ip_address: str, port: 
     send_and_die(lock_request_url=lock_request_url)
 
 
-class MultiThreadedTests(ThreadAwareTestCase):  # type: ignore
+class MultiThreadedTests(thread.ThreadAwareTestCase):  # type: ignore
     def test_rw_coordinator(self) -> None:
         ip_address = "localhost"
         port = 10245
@@ -77,7 +77,7 @@ class MultiThreadedTests(ThreadAwareTestCase):  # type: ignore
         access_client = rw_coordinator.RwCoordinatorClient(url=f"ws://{ip_address}:{port}")
 
         try:
-            with ThreadJoiner(45):
+            with thread.ThreadJoiner(45):
                 for i in range(num_threads):
                     self.run_in_thread(
                         lambda: read_and_sleep(
@@ -115,7 +115,7 @@ class MultiThreadedTests(ThreadAwareTestCase):  # type: ignore
         access_client = rw_coordinator.RwCoordinatorClient(url=f"ws://{ip_address}:{port}")
 
         try:
-            with ThreadJoiner(45):
+            with thread.ThreadJoiner(45):
                 for i in range(num_threads):
                     if i in threads_to_die:
                         self.run_in_thread(

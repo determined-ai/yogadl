@@ -57,9 +57,9 @@ class RwCoordinatorClient:
                 expected_response=communication_protocol.READ_LOCK_GRANTED,
             ):
                 yield
-        except RuntimeError as error:
+        except RuntimeError:
             logging.warning(f"Can not reach access server at: {self._url}.")
-            raise error
+            raise
 
     @contextlib.contextmanager
     def write_lock(
@@ -75,6 +75,6 @@ class RwCoordinatorClient:
                 expected_response=communication_protocol.WRITE_LOCK_GRANTED,
             ):
                 yield
-        except RuntimeError as error:
+        except RuntimeError:
             logging.warning(f"Can not reach access server at: {self._url}.")
-            raise error
+            raise

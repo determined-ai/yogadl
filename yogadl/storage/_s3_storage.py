@@ -6,10 +6,10 @@ import boto3
 import botocore.client as boto_client
 
 import yogadl.constants as constants
-import yogadl.storage.cloud_storage as cloud_storage
+from yogadl import storage
 
 
-class S3Configurations(cloud_storage.BaseCloudConfigurations):
+class S3Configurations(storage.BaseCloudConfigurations):
     def __init__(
         self,
         bucket: str,
@@ -31,7 +31,7 @@ class S3Configurations(cloud_storage.BaseCloudConfigurations):
         self.endpoint_url = endpoint_url
 
 
-class S3Storage(cloud_storage.BaseCloudStorage):
+class S3Storage(storage.BaseCloudStorage):
     """
     Stores dataset cache in AWS S3.
 
@@ -62,7 +62,7 @@ class S3Storage(cloud_storage.BaseCloudStorage):
 
     def _check_configurations(self) -> None:
         assert self._configurations.local_cache_dir.is_dir()
-        assert self._configurations.cache_backend in self._supported_cache_backends
+        assert self._configurations.cache_format in self._supported_cache_formats
 
         try:
             self._client.head_bucket(Bucket=self._configurations.bucket)

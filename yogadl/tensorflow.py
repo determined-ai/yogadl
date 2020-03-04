@@ -3,8 +3,7 @@ from typing import Any, Generator, Tuple
 
 import tensorflow as tf
 
-import yogadl.core as core
-import yogadl.lmdb_handler as lmdb_handler
+import yogadl
 
 
 def read_tf_dataset(dataset: tf.data.Dataset) -> Generator[Tuple[Any, bool], None, None]:
@@ -26,7 +25,7 @@ def serialize_tf_dataset_to_lmdb(
     dataset: tf.data.Dataset, checkpoint_path: pathlib.Path, write_frequency: int = 5000
 ) -> int:
     assert isinstance(dataset, tf.data.Dataset)
-    return lmdb_handler.serialize_generator_to_lmdb(
+    return yogadl.serialize_generator_to_lmdb(
         dataset_generator=read_tf_dataset(dataset=dataset),
         data_shapes=tf.data.get_output_shapes(dataset),
         data_types=tf.data.get_output_types(dataset),
@@ -35,7 +34,7 @@ def serialize_tf_dataset_to_lmdb(
     )
 
 
-def make_tf_dataset(stream: core.Stream) -> tf.data.Dataset:
+def make_tf_dataset(stream: yogadl.Stream) -> tf.data.Dataset:
     """
     Produce a tf.data.Dataset from a yogadl.Stream.
     """

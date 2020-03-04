@@ -3,14 +3,12 @@ import tensorflow as tf
 
 import tests.integration.util as util  # noqa: I202, I100
 
-import yogadl.dataref.local_lmdb_dataref as lfs_dataref
-import yogadl.storage.lfs_storage as lfs_storage
-import yogadl.tensorflow_util as tf_utils
+from yogadl import dataref, storage, tensorflow
 
 
 def test_mnist_single_threaded() -> None:
-    config = lfs_storage.LFSConfigurations(storage_dir_path="/tmp/")
-    storage = lfs_storage.LFSStorage(configurations=config)
+    config = storage.LFSConfigurations(storage_dir_path="/tmp/")
+    lfs_storage = storage.LFSStorage(configurations=config)
 
     dataset_id = "mnist"
     dataset_version = "1"
@@ -19,12 +17,12 @@ def test_mnist_single_threaded() -> None:
         configurations=config, dataset_id=dataset_id, dataset_version=dataset_version
     )
 
-    @storage.cacheable(dataset_id=dataset_id, dataset_version=dataset_version)
-    def make_dataset() -> lfs_dataref.LMDBDataRef:
+    @lfs_storage.cacheable(dataset_id=dataset_id, dataset_version=dataset_version)
+    def make_dataset() -> dataref.LMDBDataRef:
         return util.make_mnist_train_dataset()  # type: ignore
 
     stream_from_cache = make_dataset().stream()
-    dataset_from_stream = tf_utils.make_tf_dataset(stream_from_cache)
+    dataset_from_stream = tensorflow.make_tf_dataset(stream_from_cache)
     original_dataset = util.make_mnist_train_dataset()
 
     next_element_from_stream = dataset_from_stream.make_one_shot_iterator().get_next()

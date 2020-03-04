@@ -1,17 +1,15 @@
 import numpy as np
 import pytest
 import tensorflow as tf
-from tl.testing.thread import ThreadAwareTestCase, ThreadJoiner
+from tl.testing import thread
 
 import tests.integration.util as util  # noqa: I202, I100
 
-import yogadl.dataref.local_lmdb_dataref as lfs_dataref
-import yogadl.storage.gcs_storage as gcs_storage
-import yogadl.tensorflow_util as tf_utils
+from yogadl import dataref, storage, tensorflow
 
 
-def create_gcs_configuration(access_server_port: int) -> gcs_storage.GCSConfigurations:
-    return gcs_storage.GCSConfigurations(
+def create_gcs_configuration(access_server_port: int) -> storage.GCSConfigurations:
+    return storage.GCSConfigurations(
         bucket="yogadl-test",
         bucket_directory_path="integration-tests",
         url=f"ws://localhost:{access_server_port}",
@@ -20,16 +18,16 @@ def create_gcs_configuration(access_server_port: int) -> gcs_storage.GCSConfigur
 
 
 def worker_using_cacheable(
-    config: gcs_storage.GCSConfigurations, dataset_id: str, dataset_version: str
+    config: storage.GCSConfigurations, dataset_id: str, dataset_version: str
 ) -> None:
-    storage = gcs_storage.GCSStorage(configurations=config)
+    gcs_storage = storage.GCSStorage(configurations=config)
 
-    @storage.cacheable(dataset_id=dataset_id, dataset_version=dataset_version)
-    def make_dataset() -> lfs_dataref.LMDBDataRef:
+    @gcs_storage.cacheable(dataset_id=dataset_id, dataset_version=dataset_version)
+    def make_dataset() -> dataref.LMDBDataRef:
         return util.make_mnist_train_dataset()  # type: ignore
 
     stream_from_cache = make_dataset().stream()
-    dataset_from_stream = tf_utils.make_tf_dataset(stream_from_cache)
+    dataset_from_stream = tensorflow.make_tf_dataset(stream_from_cache)
     original_dataset = util.make_mnist_train_dataset()
 
     next_element_from_stream = dataset_from_stream.make_one_shot_iterator().get_next()
@@ -75,7 +73,7 @@ def test_mnist_single_threaded() -> None:
         )
 
 
-class MultiThreadedTests(ThreadAwareTestCase):  # type: ignore
+class MultiThreadedTests(thread.ThreadAwareTestCase):  # type: ignore
     @pytest.mark.gcp  # type: ignore
     def test_mnist_multi_threaded(self) -> None:
         dataset_id = "mnist"
@@ -92,7 +90,7 @@ class MultiThreadedTests(ThreadAwareTestCase):  # type: ignore
         access_server_handler.run_server_in_thread()
 
         try:
-            with ThreadJoiner(60):
+            with thread.ThreadJoiner(60):
                 for _ in range(num_threads):
                     self.run_in_thread(
                         lambda: worker_using_cacheable(

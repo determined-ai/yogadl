@@ -4,12 +4,11 @@ import pathlib
 import boto3
 import botocore.client as boto_client
 import tensorflow as tf
-from tl.testing.thread import ThreadAwareTestCase, ThreadJoiner
+from tl.testing import thread
 
 import tests.unit.util as test_util
 
-import yogadl.dataref.local_lmdb_dataref as dataref
-import yogadl.storage.s3_storage as storage
+from yogadl import dataref, storage
 
 
 def create_s3_configuration(access_server_port: int) -> storage.S3Configurations:
@@ -201,7 +200,7 @@ def worker(configurations: storage.S3Configurations, dataset_id: str, dataset_ve
     assert generator_length == range_size
 
 
-class MultiThreadedTests(ThreadAwareTestCase):  # type: ignore
+class MultiThreadedTests(thread.ThreadAwareTestCase):  # type: ignore
     def test_gcs_storage_cacheable_multi_threaded(self) -> None:
         dataset_id = "range-dataset"
         dataset_version = "0"
@@ -218,7 +217,7 @@ class MultiThreadedTests(ThreadAwareTestCase):  # type: ignore
         client.delete_object(Bucket=configurations.bucket, Key=str(s3_cache_filepath))
 
         try:
-            with ThreadJoiner(10):
+            with thread.ThreadJoiner(10):
                 for _ in range(num_threads):
                     self.run_in_thread(lambda: worker(configurations, dataset_id, dataset_version))
         finally:

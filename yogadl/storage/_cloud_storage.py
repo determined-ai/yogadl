@@ -8,10 +8,8 @@ from typing import Any, Callable, cast, Dict, Generator, Optional
 
 import filelock
 
-import yogadl.core as core
-import yogadl.dataref.local_lmdb_dataref as dataref
-import yogadl.rw_coordinator as rw_coordinator
-import yogadl.tensorflow_util as tensorflow_util
+import yogadl
+from yogadl import dataref, rw_coordinator, tensorflow
 
 
 class BaseCloudConfigurations(metaclass=abc.ABCMeta):
@@ -26,10 +24,10 @@ class BaseCloudConfigurations(metaclass=abc.ABCMeta):
         self.bucket_directory_path = pathlib.Path(bucket_directory_path)
         self.url = url
         self.local_cache_dir = pathlib.Path(local_cache_dir)
-        self.cache_backend = "LMDB"
+        self.cache_format = "LMDB"
 
 
-class BaseCloudStorage(core.Storage):
+class BaseCloudStorage(yogadl.Storage):
     """
     Base class for using cloud storage.
 
@@ -40,7 +38,7 @@ class BaseCloudStorage(core.Storage):
     def __init__(self, configurations: BaseCloudConfigurations) -> None:
         self._configurations = configurations
         self._rw_client = rw_coordinator.RwCoordinatorClient(url=self._configurations.url)
-        self._supported_cache_backends = ["LMDB"]
+        self._supported_cache_formats = ["LMDB"]
 
     @property
     @abc.abstractmethod
@@ -69,7 +67,7 @@ class BaseCloudStorage(core.Storage):
     ) -> datetime.datetime:
         pass
 
-    def submit(self, data: core.Submittable, dataset_id: str, dataset_version: str) -> None:
+    def submit(self, data: yogadl.Submittable, dataset_id: str, dataset_version: str) -> None:
         """
         Stores dataset by creating a local cache and uploading it to cloud storage.
 
@@ -88,7 +86,7 @@ class BaseCloudStorage(core.Storage):
             local_cache_filepath.unlink()
 
         # TODO: remove TF hardcoding.
-        tensorflow_util.serialize_tf_dataset_to_lmdb(
+        tensorflow.serialize_tf_dataset_to_lmdb(
             dataset=data, checkpoint_path=local_cache_filepath,
         )
         logging.debug(
@@ -181,7 +179,7 @@ class BaseCloudStorage(core.Storage):
                         dataset_id=dataset_id, dataset_version=dataset_version
                     )
 
-                assert local_lmdb_dataref
+                    assert local_lmdb_dataref, "Unable to create dataref from cloud cache."
 
                 return local_lmdb_dataref
 

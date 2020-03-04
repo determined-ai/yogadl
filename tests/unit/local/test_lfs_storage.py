@@ -2,8 +2,7 @@ import pathlib
 
 import tensorflow as tf
 
-import yogadl.dataref.local_lmdb_dataref as dataref
-import yogadl.storage.lfs_storage as storage
+from yogadl import dataref, storage
 
 
 def create_configurations() -> storage.LFSConfigurations:
