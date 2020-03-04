@@ -7,10 +7,7 @@ import google.cloud.storage as google_storage
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-import yogadl.rw_coordinator as rw_coordinator
-import yogadl.storage.gcs_storage as gcs_storage
-import yogadl.storage.lfs_storage as lfs_storage
-import yogadl.storage.s3_storage as s3_storage
+from yogadl import rw_coordinator, storage
 
 
 def make_mnist_train_dataset() -> tf.data.Dataset:
@@ -24,7 +21,7 @@ def make_mnist_train_dataset() -> tf.data.Dataset:
 
 
 def cleanup_lfs_storage(
-    configurations: lfs_storage.LFSConfigurations, dataset_id: str, dataset_version: str
+    configurations: storage.LFSConfigurations, dataset_id: str, dataset_version: str
 ) -> None:
     cache_filepath = (
         configurations.storage_dir_path.joinpath(dataset_id)
@@ -36,7 +33,7 @@ def cleanup_lfs_storage(
 
 
 def cleanup_gcs_storage(
-    configurations: gcs_storage.GCSConfigurations, dataset_id: str, dataset_version: str
+    configurations: storage.GCSConfigurations, dataset_id: str, dataset_version: str
 ) -> None:
     gcs_cache_filepath = (
         configurations.bucket_directory_path.joinpath(dataset_id)
@@ -52,7 +49,7 @@ def cleanup_gcs_storage(
 
 
 def cleanup_s3_storage(
-    configurations: s3_storage.S3Configurations, dataset_id: str, dataset_version: str
+    configurations: storage.S3Configurations, dataset_id: str, dataset_version: str
 ) -> None:
     s3_cache_filepath = (
         configurations.bucket_directory_path.joinpath(dataset_id)

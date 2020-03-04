@@ -1,6 +1,6 @@
 import tests.unit.util as util
 
-import yogadl.dataref.local_lmdb_dataref as dataref
+from yogadl import dataref
 
 
 def test_lfs_dataref_from_checkpoint() -> None:

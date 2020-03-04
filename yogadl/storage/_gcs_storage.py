@@ -2,13 +2,13 @@ import datetime
 import pathlib
 
 import google.api_core.exceptions as gcp_exceptions
-import google.cloud.storage as storage
+import google.cloud.storage as google_storage
 
 import yogadl.constants as constants
-import yogadl.storage.cloud_storage as cloud_storage
+from yogadl import storage
 
 
-class GCSConfigurations(cloud_storage.BaseCloudConfigurations):
+class GCSConfigurations(storage.BaseCloudConfigurations):
     def __init__(
         self, bucket: str, bucket_directory_path: str, url: str, local_cache_dir: str = "/tmp/",
     ) -> None:
@@ -20,7 +20,7 @@ class GCSConfigurations(cloud_storage.BaseCloudConfigurations):
         )
 
 
-class GCSStorage(cloud_storage.BaseCloudStorage):
+class GCSStorage(storage.BaseCloudStorage):
     """
     Stores dataset cache in Google Cloud Storage (GCS).
 
@@ -45,14 +45,14 @@ class GCSStorage(cloud_storage.BaseCloudStorage):
     def __init__(self, configurations: GCSConfigurations):
         super().__init__(configurations=configurations)
 
-        self._gcs_client = storage.Client()
+        self._gcs_client = google_storage.Client()
         self._bucket = self._gcs_client.bucket(self._configurations.bucket)
 
         self._check_configurations()
 
     def _check_configurations(self) -> None:
         assert self._configurations.local_cache_dir.is_dir()
-        assert self._configurations.cache_backend in self._supported_cache_backends
+        assert self._configurations.cache_format in self._supported_cache_formats
         assert self._bucket.exists()
 
     @property

@@ -5,9 +5,8 @@ from typing import Any, Callable, Generator
 
 import filelock
 
-import yogadl.core as core
-import yogadl.dataref.local_lmdb_dataref as dataref
-import yogadl.tensorflow_util as tensorflow_util
+import yogadl
+from yogadl import dataref, tensorflow
 
 
 class LFSConfigurations:
@@ -17,24 +16,24 @@ class LFSConfigurations:
 
     def __init__(self, storage_dir_path: str):
         self.storage_dir_path = pathlib.Path(storage_dir_path)
-        self.cache_backend = "LMDB"
+        self.cache_format = "LMDB"
 
 
-class LFSStorage(core.Storage):
+class LFSStorage(yogadl.Storage):
     """
     Storage for local file system (not NFS).
     """
 
     def __init__(self, configurations: LFSConfigurations):
         self._configurations = configurations
-        self._supported_cache_backends = ["LMDB"]
+        self._supported_cache_formats = ["LMDB"]
         self._check_configurations()
 
     def _check_configurations(self) -> None:
         assert self._configurations.storage_dir_path.is_dir()
-        assert self._configurations.cache_backend in self._supported_cache_backends
+        assert self._configurations.cache_format in self._supported_cache_formats
 
-    def submit(self, data: core.Submittable, dataset_id: str, dataset_version: str) -> None:
+    def submit(self, data: yogadl.Submittable, dataset_id: str, dataset_version: str) -> None:
         """
         Stores dataset to a cache and updates metadata file with information.
 
@@ -50,7 +49,7 @@ class LFSStorage(core.Storage):
             cache_filepath.unlink()
 
         # TODO: remove TF hardcoding.
-        tensorflow_util.serialize_tf_dataset_to_lmdb(
+        tensorflow.serialize_tf_dataset_to_lmdb(
             dataset=data, checkpoint_path=cache_filepath,
         )
         logging.info(f"Serialized dataset {dataset_id}:{dataset_version} to: {cache_filepath}.")

@@ -5,8 +5,7 @@ from typing import Optional
 
 import tensorflow as tf
 
-import yogadl.rw_coordinator as rw_coordinator
-import yogadl.tensorflow_util as tensorflow_util
+from yogadl import rw_coordinator, tensorflow
 
 
 def create_lmdb_checkpoint_using_range(range_size: int) -> pathlib.Path:
@@ -15,7 +14,7 @@ def create_lmdb_checkpoint_using_range(range_size: int) -> pathlib.Path:
     if checkpoint_path.exists():
         checkpoint_path.unlink()
 
-    tensorflow_util.serialize_tf_dataset_to_lmdb(
+    tensorflow.serialize_tf_dataset_to_lmdb(
         dataset=dataset, checkpoint_path=checkpoint_path,
     )
 
