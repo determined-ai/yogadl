@@ -122,5 +122,5 @@ def test_lmdb_access_shapes_and_types() -> None:
         lmdb_path=util.create_lmdb_checkpoint_using_range(range_size=range_size)
     )
     matching_dataset = tf.data.Dataset.range(range_size)
-    assert lmdb_reader.get_shapes() == tf.data.get_output_shapes(matching_dataset)
-    assert lmdb_reader.get_types() == tf.data.get_output_types(matching_dataset)
+    assert lmdb_reader.get_shapes() == tf.compat.v1.data.get_output_shapes(matching_dataset)
+    assert lmdb_reader.get_types() == tf.compat.v1.data.get_output_types(matching_dataset)
