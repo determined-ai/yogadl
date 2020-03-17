@@ -18,7 +18,7 @@ setup(
         "google-cloud-storage",
         "lmdb",
         "lomond",
-        "tensorflow<2",
+        "tensorflow",
         "websockets",
     ],
 )
