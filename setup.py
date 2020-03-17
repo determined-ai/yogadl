@@ -18,7 +18,9 @@ setup(
         "google-cloud-storage",
         "lmdb",
         "lomond",
-        "tensorflow",
         "websockets",
     ],
+    extras_require={
+        "tf": ["tensorflow"]
+    }
 )
