@@ -27,6 +27,7 @@ class LMDBDataRef(yogadl.DataRef):
         self,
         start_offset: int = 0,
         shuffle: bool = False,
+        skip_shuffle_at_epoch_end: bool = False,
         shuffle_seed: Optional[int] = None,
         shard_rank: int = 0,
         number_of_shards: int = 1,
@@ -34,17 +35,21 @@ class LMDBDataRef(yogadl.DataRef):
         """
         Create a stream from a cache.
         """
-        generated_keys = self._shard_and_shuffle_keys(
-            shuffle=shuffle,
-            shuffle_seed=shuffle_seed,
-            shard_rank=shard_rank,
-            number_of_shards=number_of_shards,
-        )
+        if shuffle and not skip_shuffle_at_epoch_end:
+            assert shuffle_seed, (
+                "Please set `shuffle_seed` if enabling `shuffle` and not enabling "
+                "`skip_shuffle_at_epoch_end`."
+            )
+
+        generated_keys = self._shard_keys(shard_rank=shard_rank, number_of_shards=number_of_shards)
 
         generator_from_keys = yogadl.GeneratorFromKeys(
             keys=generated_keys,
             initial_offset=start_offset,
             read_val_from_key_fn=self._lmdb_access.read_value_by_key,
+            shuffle_at_start=shuffle,
+            shuffle_after_epoch=shuffle and not skip_shuffle_at_epoch_end,
+            shuffle_seed=shuffle_seed,
         )
 
         return yogadl.Stream(
@@ -57,12 +62,9 @@ class LMDBDataRef(yogadl.DataRef):
     def __len__(self) -> int:
         return len(self._keys)
 
-    def _shard_and_shuffle_keys(
-        self, shuffle: bool, shuffle_seed: Optional[int], shard_rank: int, number_of_shards: int,
-    ) -> List[bytes]:
+    def _shard_keys(self, shard_rank: int, number_of_shards: int) -> List[bytes]:
         generated_keys = yogadl.shard_keys(
-            keys=self._keys, shard_index=shard_rank, world_size=number_of_shards, sequential=False,
+            keys=self._keys, shard_index=shard_rank, world_size=number_of_shards, sequential=False
         )
-        if shuffle:
-            generated_keys = yogadl.shuffle_keys(keys=generated_keys, seed=shuffle_seed)
+
         return generated_keys
