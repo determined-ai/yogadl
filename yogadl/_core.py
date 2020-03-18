@@ -72,6 +72,7 @@ class DataRef(metaclass=abc.ABCMeta):
         self,
         start_offset: int = 0,
         shuffle: bool = False,
+        skip_shuffle_at_epoch_end: bool = False,
         shuffle_seed: Optional[int] = None,
         shard_rank: int = 0,
         number_of_shards: int = 1,

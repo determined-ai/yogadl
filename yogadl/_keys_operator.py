@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-import random
+import copy
 from typing import Any, Callable, Generator, List, Optional
+
+import numpy as np
 
 
 def sequential_shard(keys: List[bytes], shard_index: int, world_size: int) -> List[bytes]:
@@ -41,25 +43,53 @@ def shard_keys(
 
 
 def shuffle_keys(keys: List[bytes], seed: Optional[int] = None) -> List[bytes]:
-    if seed:
-        random.seed(seed)
-    random.shuffle(keys)
+    shuffler = np.random.RandomState(seed)
+    shuffler.shuffle(keys)
     return keys
 
 
 class GeneratorFromKeys:
     def __init__(
-        self, keys: List[bytes], initial_offset: int, read_val_from_key_fn: Callable
+        self,
+        keys: List[bytes],
+        initial_offset: int,
+        read_val_from_key_fn: Callable,
+        shuffle_at_start: bool,
+        shuffle_after_epoch: bool,
+        shuffle_seed: Optional[int],
     ) -> None:
         assert initial_offset >= 0
         self._keys = keys
         self._initial_offset = initial_offset % len(self._keys)
+        self._current_epoch = initial_offset // len(self._keys)
         self._read_val_from_key_fn = read_val_from_key_fn
+        self._shuffle_enabled = shuffle_at_start
+        self._shuffle_after_epoch = shuffle_after_epoch
+        self._shuffle_seed = shuffle_seed
         self._initial_epoch = True
 
+        self._validate_args()
+
+    def _validate_args(self) -> None:
+        if self._shuffle_after_epoch:
+            assert self._shuffle_enabled, "`shuffle` must be enabled to use `shuffle_after_epoch`."
+            assert self._shuffle_seed, "`shuffle_seed` must be set to use `shuffle_after_epoch`."
+
     def instantiate_generator(self) -> Generator[Any, None, None]:
+        keys = self._shuffle_keys() if self._shuffle_enabled else self._keys
+        self._current_epoch += 1
+
         key_index = self._initial_offset if self._initial_epoch else 0
         self._initial_epoch = False
-        while key_index < len(self._keys):
-            yield self._read_val_from_key_fn(self._keys[key_index])
+
+        while key_index < len(keys):
+            yield self._read_val_from_key_fn(keys[key_index])
             key_index += 1
+
+    def _shuffle_keys(self) -> List[bytes]:
+        shuffle_seed = self._shuffle_seed
+        if self._current_epoch > 0 and self._shuffle_after_epoch:
+            assert shuffle_seed
+            shuffle_seed += self._current_epoch
+
+        return shuffle_keys(keys=copy.deepcopy(self._keys), seed=shuffle_seed)
