@@ -126,7 +126,7 @@ class LmdbAccess:
         self._read_keys_from_db()
         self._read_shapes_from_db()
         self._read_types_from_db()
-        logging.info(f"Found {self._size} entries in {self._lmdb_path}.")
+        logging.debug(f"Found {self._size} entries in {self._lmdb_path}.")
         self._close_lmdb()
 
     def __exit__(self, *_: Any) -> None:
