@@ -13,18 +13,17 @@
 # limitations under the License.
 # ==============================================================================
 #!/usr/bin/env python3
-
-from distutils.core import setup
+from setuptools import find_packages, setup
 
 setup(
-    python_requires=">=3.6.0",
-    version="0.1",
     name="yogadl",
-    description="Yoga Data Layer, a flexible data layer for machine learning",
+    version="0.1",
     author="Determined AI",
-    author_email="info@determined.ai",
+    author_email="hello@determined.ai",
     url="https://www.github.com/determined-ai/yogadl/",
-    packages=["yogadl"],
+    description="Yoga Data Layer, a flexible data layer for machine learning",
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
+    python_requires=">=3.6.0",
     install_requires=[
         "async_generator",
         "boto3",
@@ -35,4 +34,5 @@ setup(
         "websockets",
     ],
     extras_require={"tf": ["tensorflow"]},
+    zip_safe=False,
 )
