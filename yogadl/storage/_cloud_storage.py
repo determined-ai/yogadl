@@ -103,9 +103,9 @@ class BaseCloudStorage(yogadl.Storage):
         tensorflow.serialize_tf_dataset_to_lmdb(
             dataset=data, checkpoint_path=local_cache_filepath,
         )
-        logging.debug(
-            f"Serialized dataset {dataset_id}:{dataset_version} "
-            f"to local cache: {local_cache_filepath}."
+        logging.info(
+            f"Serialized dataset {dataset_id}:{dataset_version} to local cache: "
+            f"{local_cache_filepath} and uploading to remote storage."
         )
 
         timestamp = self._upload_to_cloud_storage(
@@ -113,6 +113,7 @@ class BaseCloudStorage(yogadl.Storage):
             dataset_version=dataset_version,
             local_cache_filepath=local_cache_filepath,
         ).timestamp()
+        logging.info("Cache upload to remote storage finished.")
 
         # Update metadata with new upload time.
         local_metadata = self._get_local_metadata(
@@ -150,11 +151,13 @@ class BaseCloudStorage(yogadl.Storage):
         if local_metadata.get("time_created") == remote_cache_timestamp:
             logging.info("Local cache matches remote cache.")
         else:
+            logging.info(f"Downloading remote cache to {local_cache_filepath}.")
             local_metadata["time_created"] = self._download_from_cloud_storage(
                 dataset_id=dataset_id,
                 dataset_version=dataset_version,
                 local_cache_filepath=local_cache_filepath,
             ).timestamp()
+            logging.info("Cache download finished.")
 
             self._save_local_metadata(
                 dataset_id=dataset_id, dataset_version=dataset_version, metadata=local_metadata,
