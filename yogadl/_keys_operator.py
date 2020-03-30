@@ -18,28 +18,37 @@ from typing import Any, Callable, Generator, List, Optional
 import numpy as np
 
 
-def sequential_shard(keys: List[bytes], shard_index: int, world_size: int) -> List[bytes]:
-    num_keys = len(keys) // world_size
-    if shard_index < len(keys) % world_size:
+def sequential_shard(keys: List[bytes], shard_index: int, num_shards: int) -> List[bytes]:
+    num_keys = len(keys) // num_shards
+    if shard_index < len(keys) % num_shards:
         num_keys += 1
-    start_index = num_keys * shard_index + min(len(keys) % world_size, shard_index)
+    start_index = num_keys * shard_index + min(len(keys) % num_shards, shard_index)
     return keys[start_index : start_index + num_keys]
 
 
-def non_sequential_shard(keys: List[bytes], shard_index: int, world_size: int) -> List[bytes]:
-    key_indexes = list(range(shard_index, len(keys), world_size))
+def non_sequential_shard(keys: List[bytes], shard_index: int, num_shards: int) -> List[bytes]:
+    key_indexes = list(range(shard_index, len(keys), num_shards))
     return [keys[idx] for idx in key_indexes]
 
 
 def shard_keys(
-    keys: List[bytes], shard_index: int, world_size: int, sequential: bool = False
+    keys: List[bytes],
+    shard_index: int,
+    num_shards: int,
+    sequential: bool = False,
+    drop_shard_remainder: bool = False,
 ) -> List[bytes]:
     assert shard_index >= 0, "Shard index must be greater or equal to zero."
-    assert shard_index < world_size, "Shard index must be less than world_size."
+    assert shard_index < num_shards, "Shard index must be less than num_shards."
+
+    if drop_shard_remainder:
+        assert len(keys) >= num_shards, f"Too few keys to shard across {num_shards} ranks."
+        keys = keys[: len(keys) - (len(keys) % num_shards)]
+
     if sequential:
-        return sequential_shard(keys=keys, shard_index=shard_index, world_size=world_size)
+        return sequential_shard(keys=keys, shard_index=shard_index, num_shards=num_shards)
     else:
-        return non_sequential_shard(keys=keys, shard_index=shard_index, world_size=world_size)
+        return non_sequential_shard(keys=keys, shard_index=shard_index, num_shards=num_shards)
 
 
 def shuffle_keys(keys: List[bytes], seed: Optional[int] = None) -> List[bytes]:

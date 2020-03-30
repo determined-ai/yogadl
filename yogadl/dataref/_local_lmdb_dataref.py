@@ -30,7 +30,8 @@ class LMDBDataRef(yogadl.DataRef):
         skip_shuffle_at_epoch_end: bool = False,
         shuffle_seed: Optional[int] = None,
         shard_rank: int = 0,
-        number_of_shards: int = 1,
+        num_shards: int = 1,
+        drop_shard_remainder: bool = False,
     ) -> yogadl.Stream:
         """
         Create a stream from a cache.
@@ -41,7 +42,9 @@ class LMDBDataRef(yogadl.DataRef):
                 "`skip_shuffle_at_epoch_end`."
             )
 
-        generated_keys = self._shard_keys(shard_rank=shard_rank, number_of_shards=number_of_shards)
+        generated_keys = self._shard_keys(
+            shard_rank=shard_rank, num_shards=num_shards, drop_shard_remainder=drop_shard_remainder,
+        )
 
         generator_from_keys = yogadl.GeneratorFromKeys(
             keys=generated_keys,
@@ -62,9 +65,15 @@ class LMDBDataRef(yogadl.DataRef):
     def __len__(self) -> int:
         return len(self._keys)
 
-    def _shard_keys(self, shard_rank: int, number_of_shards: int) -> List[bytes]:
+    def _shard_keys(
+        self, shard_rank: int, num_shards: int, drop_shard_remainder: bool
+    ) -> List[bytes]:
         generated_keys = yogadl.shard_keys(
-            keys=self._keys, shard_index=shard_rank, world_size=number_of_shards, sequential=False
+            keys=self._keys,
+            shard_index=shard_rank,
+            num_shards=num_shards,
+            sequential=False,
+            drop_shard_remainder=drop_shard_remainder,
         )
 
         return generated_keys

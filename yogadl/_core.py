@@ -75,7 +75,8 @@ class DataRef(metaclass=abc.ABCMeta):
         skip_shuffle_at_epoch_end: bool = False,
         shuffle_seed: Optional[int] = None,
         shard_rank: int = 0,
-        number_of_shards: int = 1,
+        num_shards: int = 1,
+        drop_shard_remainder: bool = False,
     ) -> Stream:
         pass
 
@@ -95,10 +96,8 @@ class Storage(metaclass=abc.ABCMeta):
     in an unspecified format, and returns objects which implement the DataRef
     interface.
 
-    Note that submission and cacheing are not multiprocessing-safe by default.
-    There will be subclasses of Storage which provide such safety, either via
-    lock files on a shared filesystem or via some outside worker. In either
-    case, the @cacheable decorator should be safe to call simultaneously from
+    Note that submit() and fetch() are not multiprocessing-safe by default.
+    The @cacheable decorator should be safe to call simultaneously from
     many threads, processes, or machines.
     """
 
