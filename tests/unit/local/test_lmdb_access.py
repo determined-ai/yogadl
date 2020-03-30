@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+import pytest
 from typing import List
 
 import tensorflow as tf
@@ -22,11 +23,19 @@ import yogadl
 
 
 def shard_and_get_keys(
-    lmdb_reader: yogadl.LmdbAccess, shard_index: int, world_size: int, sequential: bool
+    lmdb_reader: yogadl.LmdbAccess,
+    shard_index: int,
+    num_shards: int,
+    sequential: bool,
+    drop_shard_remainder: bool,
 ) -> List[bytes]:
     keys = lmdb_reader.get_keys()
     keys = yogadl.shard_keys(
-        keys=keys, shard_index=shard_index, world_size=world_size, sequential=sequential,
+        keys=keys,
+        shard_index=shard_index,
+        num_shards=num_shards,
+        sequential=sequential,
+        drop_shard_remainder=drop_shard_remainder,
     )
     return keys
 
@@ -46,19 +55,21 @@ def test_lmdb_access_keys() -> None:
         assert convert_int_to_byte_string(idx) == key
 
 
-def test_lmdb_access_keys_sequential_shard() -> None:
+@pytest.mark.parametrize("drop_remainder", [True, False])  # type: ignore
+def test_lmdb_access_keys_sequential_shard(drop_remainder: bool) -> None:
     range_size = 10
-    world_size = 3
+    num_shards = 3
     lmdb_checkpoint_path = util.create_lmdb_checkpoint_using_range(range_size=range_size)
     key_shards = []
-    for shard_id in range(world_size):
+    for shard_id in range(num_shards):
         lmdb_reader = yogadl.LmdbAccess(lmdb_path=lmdb_checkpoint_path)
         key_shards.append(
             shard_and_get_keys(
                 lmdb_reader=lmdb_reader,
                 shard_index=shard_id,
-                world_size=world_size,
+                num_shards=num_shards,
                 sequential=True,
+                drop_shard_remainder=drop_remainder,
             )
         )
 
@@ -66,24 +77,29 @@ def test_lmdb_access_keys_sequential_shard() -> None:
     for key_shard in key_shards:
         merged_keys.extend(key_shard)
 
-    assert len(merged_keys) == range_size
+    expected_range_size = (
+        range_size if not drop_remainder else range_size - (range_size % num_shards)
+    )
+    assert len(merged_keys) == expected_range_size
     for idx, key in enumerate(merged_keys):
         assert convert_int_to_byte_string(idx) == key
 
 
-def test_lmdb_access_keys_non_sequential_shard() -> None:
+@pytest.mark.parametrize("drop_remainder", [True, False])  # type: ignore
+def test_lmdb_access_keys_non_sequential_shard(drop_remainder: bool) -> None:
     range_size = 10
-    world_size = 3
+    num_shards = 3
     lmdb_checkpoint_path = util.create_lmdb_checkpoint_using_range(range_size=range_size)
     key_shards = []
-    for shard_id in range(world_size):
+    for shard_id in range(num_shards):
         lmdb_reader = yogadl.LmdbAccess(lmdb_path=lmdb_checkpoint_path)
         key_shards.append(
             shard_and_get_keys(
                 lmdb_reader=lmdb_reader,
                 shard_index=shard_id,
-                world_size=world_size,
+                num_shards=num_shards,
                 sequential=False,
+                drop_shard_remainder=drop_remainder,
             )
         )
 
@@ -93,7 +109,10 @@ def test_lmdb_access_keys_non_sequential_shard() -> None:
             if idx < len(key_shard):
                 merged_keys.append(key_shard[idx])
 
-    assert len(merged_keys) == range_size
+    expected_range_size = (
+        range_size if not drop_remainder else range_size - (range_size % num_shards)
+    )
+    assert len(merged_keys) == expected_range_size
     for idx, key in enumerate(merged_keys):
         assert convert_int_to_byte_string(idx) == key
 
