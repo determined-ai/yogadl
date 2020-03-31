@@ -18,6 +18,7 @@ from typing import Optional
 
 import boto3
 import botocore.client as boto_client
+import tensorflow as tf
 
 import yogadl.constants as constants
 from yogadl import storage
@@ -61,8 +62,12 @@ class S3Storage(storage.BaseCloudStorage):
     anticipate concurrent data accesses.
     """
 
-    def __init__(self, configurations: S3Configurations):
-        super().__init__(configurations=configurations)
+    def __init__(
+        self,
+        configurations: S3Configurations,
+        tensorflow_config: Optional[tf.compat.v1.ConfigProto] = None,
+    ) -> None:
+        super().__init__(configurations=configurations, tensorflow_config=tensorflow_config)
 
         assert isinstance(self._configurations, S3Configurations)
         self._client = boto3.client(
