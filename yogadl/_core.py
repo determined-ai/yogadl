@@ -19,13 +19,13 @@ The core interfaces of the yoga data layer.
 import abc
 from typing import Any, Callable, Optional, Union
 
-import tensorflow
+import tensorflow as tf
 
 
 # TODO: Make sure users are not required to have TF, PyTorch,
 # and TP dataflows all installed to use this.
 Submittable = Union[
-    tensorflow.data.Dataset,
+    tf.data.Dataset,
 ]
 
 

@@ -21,6 +21,7 @@ import pathlib
 from typing import Any, Callable, cast, Dict, Generator, Optional
 
 import filelock
+import tensorflow as tf
 
 import yogadl
 from yogadl import dataref, rw_coordinator, tensorflow
@@ -49,10 +50,15 @@ class BaseCloudStorage(yogadl.Storage):
     S3Storage or GCSStorage.
     """
 
-    def __init__(self, configurations: BaseCloudConfigurations) -> None:
+    def __init__(
+        self,
+        configurations: BaseCloudConfigurations,
+        tensorflow_config: Optional[tf.compat.v1.ConfigProto],
+    ) -> None:
         self._configurations = configurations
         self._rw_client = rw_coordinator.RwCoordinatorClient(url=self._configurations.url)
         self._supported_cache_formats = ["LMDB"]
+        self._tensorflow_config = tensorflow_config
 
     @property
     @abc.abstractmethod
@@ -101,7 +107,7 @@ class BaseCloudStorage(yogadl.Storage):
 
         # TODO: remove TF hardcoding.
         tensorflow.serialize_tf_dataset_to_lmdb(
-            dataset=data, checkpoint_path=local_cache_filepath,
+            dataset=data, checkpoint_path=local_cache_filepath, tf_config=self._tensorflow_config
         )
         logging.info(
             f"Serialized dataset {dataset_id}:{dataset_version} to local cache: "
@@ -170,7 +176,7 @@ class BaseCloudStorage(yogadl.Storage):
     def cacheable(self, dataset_id: str, dataset_version: str) -> Callable:
         """
         A decorator that calls submit and fetch and is responsible for coordinating
-        amongst instatiations of Storage in different processes.
+        amongst instantiations of Storage in different processes.
 
         Initially requests a read lock, if cache is not present in cloud storage, will request
         a write lock and submit to cloud storage. Once file is present in cloud storage, will
@@ -227,7 +233,7 @@ class BaseCloudStorage(yogadl.Storage):
         return local_lmdb_dataref
 
     def _try_writing_to_cloud_storage(
-        self, dataset_id: str, dataset_version: str, f: Callable, args: Any, kwargs: Any
+        self, dataset_id: str, dataset_version: str, f: Callable, args: Any, kwargs: Any,
     ) -> None:
         remote_cache_path = self._get_remote_cache_filepath(
             dataset_id=dataset_id, dataset_version=dataset_version

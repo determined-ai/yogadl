@@ -14,9 +14,11 @@
 # ==============================================================================
 import datetime
 import pathlib
+from typing import Optional
 
 import google.api_core.exceptions as gcp_exceptions
 import google.cloud.storage as google_storage
+import tensorflow as tf
 
 import yogadl.constants as constants
 from yogadl import storage
@@ -56,8 +58,12 @@ class GCSStorage(storage.BaseCloudStorage):
     checkpoints will be stored (this only works when running in GCE).
     """
 
-    def __init__(self, configurations: GCSConfigurations):
-        super().__init__(configurations=configurations)
+    def __init__(
+        self,
+        configurations: GCSConfigurations,
+        tensorflow_config: Optional[tf.compat.v1.ConfigProto] = None,
+    ):
+        super().__init__(configurations=configurations, tensorflow_config=tensorflow_config)
 
         self._gcs_client = google_storage.Client()
         self._bucket = self._gcs_client.bucket(self._configurations.bucket)

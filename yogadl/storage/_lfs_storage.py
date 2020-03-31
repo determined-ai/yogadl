@@ -15,9 +15,10 @@
 import contextlib
 import logging
 import pathlib
-from typing import Any, Callable, Generator
+from typing import Any, Callable, Generator, Optional
 
 import filelock
+import tensorflow as tf
 
 import yogadl
 from yogadl import dataref, tensorflow
@@ -38,9 +39,15 @@ class LFSStorage(yogadl.Storage):
     Storage for local file system (not NFS).
     """
 
-    def __init__(self, configurations: LFSConfigurations):
+    def __init__(
+        self,
+        configurations: LFSConfigurations,
+        tensorflow_config: Optional[tf.compat.v1.ConfigProto] = None,
+    ):
         self._configurations = configurations
         self._supported_cache_formats = ["LMDB"]
+        self._tensorflow_config = tensorflow_config
+
         self._check_configurations()
 
     def _check_configurations(self) -> None:
@@ -64,7 +71,7 @@ class LFSStorage(yogadl.Storage):
 
         # TODO: remove TF hardcoding.
         tensorflow.serialize_tf_dataset_to_lmdb(
-            dataset=data, checkpoint_path=cache_filepath,
+            dataset=data, checkpoint_path=cache_filepath, tf_config=self._tensorflow_config
         )
         logging.info(f"Serialized dataset {dataset_id}:{dataset_version} to: {cache_filepath}.")
 
@@ -83,7 +90,7 @@ class LFSStorage(yogadl.Storage):
     def cacheable(self, dataset_id: str, dataset_version: str) -> Callable:
         """
         A decorator that calls submit and fetch and is responsible
-        for coordinating amongst instatiations of Storage in different
+        for coordinating amongst instantiations of Storage in different
         processes.
         """
 

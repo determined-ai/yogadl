@@ -29,7 +29,7 @@ def create_lmdb_checkpoint_using_range(range_size: int) -> pathlib.Path:
         checkpoint_path.unlink()
 
     tensorflow.serialize_tf_dataset_to_lmdb(
-        dataset=dataset, checkpoint_path=checkpoint_path,
+        dataset=dataset, checkpoint_path=checkpoint_path, tf_config=None
     )
 
     return checkpoint_path

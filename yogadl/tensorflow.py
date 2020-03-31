@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 import pathlib
-from typing import Any, Generator, Tuple
+from typing import Any, Generator, Optional, Tuple
 
 import tensorflow as tf
 
@@ -29,9 +29,11 @@ def read_tf_dataset_eager_mode(dataset: tf.data.Dataset) -> Generator[Tuple[Any,
         yield next_element
 
 
-def read_tf_dataset_graph_mode(dataset: tf.data.Dataset) -> Generator[Tuple[Any, bool], None, None]:
+def read_tf_dataset_graph_mode(
+    dataset: tf.data.Dataset, tf_config: Optional[tf.compat.v1.ConfigProto]
+) -> Generator[Tuple[Any, bool], None, None]:
     get_next_element = tf.compat.v1.data.make_one_shot_iterator(dataset).get_next()
-    with tf.compat.v1.Session() as sess:
+    with tf.compat.v1.Session(config=tf_config) as sess:
         while True:
             try:
                 # TODO: If repeat() has been applied we will hit an infinite
@@ -43,19 +45,24 @@ def read_tf_dataset_graph_mode(dataset: tf.data.Dataset) -> Generator[Tuple[Any,
                 break
 
 
-def read_tf_dataset(dataset: tf.data.Dataset) -> Generator[Tuple[Any, bool], None, None]:
+def read_tf_dataset(
+    dataset: tf.data.Dataset, tf_config: Optional[tf.compat.v1.ConfigProto]
+) -> Generator[Tuple[Any, bool], None, None]:
     if tf.executing_eagerly():
         return read_tf_dataset_eager_mode(dataset)
     else:
-        return read_tf_dataset_graph_mode(dataset)
+        return read_tf_dataset_graph_mode(dataset, tf_config=tf_config)
 
 
 def serialize_tf_dataset_to_lmdb(
-    dataset: tf.data.Dataset, checkpoint_path: pathlib.Path, write_frequency: int = 5000
+    dataset: tf.data.Dataset,
+    checkpoint_path: pathlib.Path,
+    tf_config: Optional[tf.compat.v1.ConfigProto],
+    write_frequency: int = 5000,
 ) -> int:
     assert isinstance(dataset, tf.data.Dataset)
     return yogadl.serialize_generator_to_lmdb(
-        dataset_generator=read_tf_dataset(dataset=dataset),
+        dataset_generator=read_tf_dataset(dataset=dataset, tf_config=tf_config),
         data_shapes=tf.compat.v1.data.get_output_shapes(dataset),
         data_types=tf.compat.v1.data.get_output_types(dataset),
         lmdb_path=checkpoint_path,
