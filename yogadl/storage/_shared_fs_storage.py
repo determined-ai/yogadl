@@ -24,9 +24,9 @@ import yogadl
 from yogadl import dataref, tensorflow
 
 
-class LFSConfigurations:
+class SharedFsConfigurations:
     """
-    Configurations for LFSStorage.
+    Configurations for SharedFsStorage.
     """
 
     def __init__(self, storage_dir_path: str):
@@ -34,14 +34,14 @@ class LFSConfigurations:
         self.cache_format = "LMDB"
 
 
-class LFSStorage(yogadl.Storage):
+class SharedFsStorage(yogadl.Storage):
     """
-    Storage for local file system (not NFS).
+    Storage for local file system (nfs and local disk).
     """
 
     def __init__(
         self,
-        configurations: LFSConfigurations,
+        configurations: SharedFsConfigurations,
         tensorflow_config: Optional[tf.compat.v1.ConfigProto] = None,
     ):
         self._configurations = configurations
@@ -75,7 +75,7 @@ class LFSStorage(yogadl.Storage):
         )
         logging.info(f"Serialized dataset {dataset_id}:{dataset_version} to: {cache_filepath}.")
 
-    def fetch(self, dataset_id: str, dataset_version: str) -> dataref.LMDBDataRef:
+    def fetch(self, dataset_id: str, dataset_version: str) -> yogadl.DataRef:
         """
         Fetch a dataset from storage and provide a DataRef
         for streaming it.
@@ -95,7 +95,7 @@ class LFSStorage(yogadl.Storage):
         """
 
         def wrap(f: Callable) -> Callable:
-            def create_dataref(*args: Any, **kwargs: Any) -> dataref.LMDBDataRef:
+            def create_dataref(*args: Any, **kwargs: Any) -> yogadl.DataRef:
                 with self._lock_this_dataset_version(dataset_id, dataset_version):
                     cache_filepath = self._get_cache_filepath(
                         dataset_id=dataset_id, dataset_version=dataset_version

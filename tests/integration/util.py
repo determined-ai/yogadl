@@ -36,7 +36,7 @@ def make_mnist_test_dataset() -> tf.data.Dataset:
 
 
 def cleanup_lfs_storage(
-    configurations: storage.LFSConfigurations, dataset_id: str, dataset_version: str
+    configurations: storage.SharedFsConfigurations, dataset_id: str, dataset_version: str
 ) -> None:
     cache_filepath = (
         configurations.storage_dir_path.joinpath(dataset_id)

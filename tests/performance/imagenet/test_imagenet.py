@@ -42,7 +42,7 @@ from yogadl import dataref, storage, tensorflow
 
 
 def cleanup_lfs_storage(
-    configurations: storage.LFSConfigurations, dataset_id: str, dataset_version: str
+    configurations: storage.SharedFsConfigurations, dataset_id: str, dataset_version: str
 ) -> None:
     cache_filepath = (
         configurations.storage_dir_path.joinpath(dataset_id)
@@ -140,8 +140,8 @@ def read_dataset(dataset: tf.data.Dataset) -> Tuple[float, int]:
 
 
 def compare_performance_tf_record_dataset(data_dir: pathlib.Path) -> None:
-    config = storage.LFSConfigurations(storage_dir_path="/tmp/")
-    lfs_storage = storage.LFSStorage(configurations=config)
+    config = storage.SharedFsConfigurations(storage_dir_path="/tmp/")
+    shared_fs_storage = storage.SharedFsStorage(configurations=config)
 
     dataset_id = "imagenet-train"
     dataset_version = "0"
@@ -151,7 +151,7 @@ def compare_performance_tf_record_dataset(data_dir: pathlib.Path) -> None:
         configurations=config, dataset_id=dataset_id, dataset_version=dataset_version
     )
 
-    @lfs_storage.cacheable(dataset_id=dataset_id, dataset_version=dataset_version)
+    @shared_fs_storage.cacheable(dataset_id=dataset_id, dataset_version=dataset_version)
     def make_dataset() -> dataref.LMDBDataRef:
         return make_dataset_from_tf_records(data_dir=data_dir, training=training)  # type: ignore
 

@@ -19,12 +19,12 @@ import tensorflow as tf
 from yogadl import dataref, storage
 
 
-def create_configurations() -> storage.LFSConfigurations:
-    return storage.LFSConfigurations(storage_dir_path="/tmp/")
+def create_configurations() -> storage.SharedFsConfigurations:
+    return storage.SharedFsConfigurations(storage_dir_path="/tmp/")
 
 
 def get_cache_filepath(
-    configurations: storage.LFSConfigurations, dataset_id: str, dataset_version: str
+    configurations: storage.SharedFsConfigurations, dataset_id: str, dataset_version: str
 ) -> pathlib.Path:
     return (
         configurations.storage_dir_path.joinpath(dataset_id)
@@ -42,8 +42,8 @@ def test_storage_submit() -> None:
     if get_cache_filepath(configurations, dataset_id, dataset_version).exists():
         get_cache_filepath(configurations, dataset_id, dataset_version).unlink()
 
-    lfs_storage = storage.LFSStorage(configurations=configurations)
-    lfs_storage.submit(data=dataset, dataset_id=dataset_id, dataset_version=dataset_version)
+    shared_fs_storage = storage.SharedFsStorage(configurations=configurations)
+    shared_fs_storage.submit(data=dataset, dataset_id=dataset_id, dataset_version=dataset_version)
 
     assert get_cache_filepath(configurations, dataset_id, dataset_version).is_file()
 
@@ -57,9 +57,9 @@ def test_storage_cacheable_single_threaded() -> None:
     if get_cache_filepath(configurations, dataset_id, dataset_version).exists():
         get_cache_filepath(configurations, dataset_id, dataset_version).unlink()
 
-    lfs_storage = storage.LFSStorage(configurations=configurations)
+    shared_fs_storage = storage.SharedFsStorage(configurations=configurations)
 
-    @lfs_storage.cacheable(dataset_id, dataset_version)
+    @shared_fs_storage.cacheable(dataset_id, dataset_version)
     def make_dataref(range_size: int) -> dataref.LMDBDataRef:
         return tf.data.Dataset.range(range_size)  # type: ignore
 

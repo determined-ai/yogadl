@@ -18,8 +18,8 @@ from yogadl import dataref, storage, tensorflow
 
 
 def test_mnist_single_threaded() -> None:
-    config = storage.LFSConfigurations(storage_dir_path="/tmp/")
-    lfs_storage = storage.LFSStorage(configurations=config)
+    config = storage.SharedFsConfigurations(storage_dir_path="/tmp/")
+    shared_fs_storage = storage.SharedFsStorage(configurations=config)
 
     dataset_id = "mnist"
     dataset_version = "1"
@@ -28,7 +28,7 @@ def test_mnist_single_threaded() -> None:
         configurations=config, dataset_id=dataset_id, dataset_version=dataset_version
     )
 
-    @lfs_storage.cacheable(dataset_id=dataset_id, dataset_version=dataset_version)
+    @shared_fs_storage.cacheable(dataset_id=dataset_id, dataset_version=dataset_version)
     def make_dataset() -> dataref.LMDBDataRef:
         return util.make_mnist_test_dataset()  # type: ignore
 
