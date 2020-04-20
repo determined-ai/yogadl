@@ -133,6 +133,6 @@ First-class support for (tf.)Keras `Sequence` objects, PyTorch `DataSet` objects
 `yogadl` offers basic dataset versioning, but it is not (at this time) a full-blown version control
 for datasets.  Offering something like version control for datasets is on the roadmap as well.
 
-## How do I use `yogadl`?
+<!-- ## How do I use `yogadl`? -->
 
-TODO: code examples here.
+<!-- TODO: code examples here. -->
