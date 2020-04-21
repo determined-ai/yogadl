@@ -13,15 +13,21 @@
 # limitations under the License.
 # ==============================================================================
 #!/usr/bin/env python3
+import pathlib
 from setuptools import find_packages, setup
+
+HERE = pathlib.Path(__file__).parent
+README = (HERE / "README.md").read_text()
 
 setup(
     name="yogadl",
-    version="0.1",
+    version="0.1.0",
     author="Determined AI",
     author_email="hello@determined.ai",
     url="https://www.github.com/determined-ai/yogadl/",
     description="Yoga Data Layer, a flexible data layer for machine learning",
+    long_description=README,
+    long_description_content_type="text/markdown",
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     python_requires=">=3.6.0",
     install_requires=[
@@ -35,4 +41,5 @@ setup(
     ],
     extras_require={"tf": ["tensorflow"]},
     zip_safe=False,
+    include_package_data=True,
 )
