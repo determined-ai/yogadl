@@ -5,4 +5,3 @@ pytest
 tensorflow_datasets<2
 tl.testing
 pytest
--e .[tf]

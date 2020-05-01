@@ -1,0 +1,158 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+
+orbs:
+  gcp-cli: circleci/gcp-cli@1.8.4
+
+commands:
+  activate-service-account:
+    steps:
+      - run:
+          name: Activate GCP service account
+          command: |
+              GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
+              echo ${GCLOUD_SERVICE_KEY} > ${GOOGLE_APPLICATION_CREDENTIALS}
+              echo "export GOOGLE_APPLICATION_CREDENTIALS=\"${GOOGLE_APPLICATION_CREDENTIALS}\"" >> $BASH_ENV
+              gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+
+              gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+              gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+
+  setup-python-venv:
+    description: Set up and create Python venv.
+    parameters:
+      yogadl:
+        type: boolean
+        default: false
+      extras-requires:
+        type: string
+        default: ""
+      extra-requirements-file:
+        type: string
+        default: ""
+    steps:
+      - run:
+          name: Install python3-venv
+          command: |
+              set +e
+              SUDO=""
+              if ! [ $(id -u) = 0 ]; then
+                SUDO="sudo"
+              fi
+              dpkg -l | grep python3-venv
+              if ! [ $? -eq 0 ]; then
+                ${SUDO} apt update && ${SUDO} apt install -y python3-venv
+              fi
+      - run: python3.6 -m venv /tmp/venv
+      - run: echo "export PATH=/tmp/venv/bin:\"${PATH}\"" >> $BASH_ENV
+      - run: /tmp/venv/bin/python -m pip install --upgrade pip\<20 wheel setuptools
+
+
+      # Write dependencies to cachefile to help create the cachekey
+      - when:
+          condition: <<parameters.yogadl>>
+          steps:
+            - run: cat setup.py >> /tmp/cachefile
+      - run: echo <<parameters.extras-requires>> >> /tmp/cachefile
+      - run: |
+          if [ -n <<parameters.extra-requirements-file>> ]; then cat <<parameters.extra-requirements-file>> >> /tmp/cachefile; fi
+
+      - restore_cache:
+          keys:
+            - yogadl-python-deps-v1dev1-{{ checksum "/tmp/cachefile" }}
+      - when:
+          condition: <<parameters.yogadl>>
+          steps:
+            - run: /tmp/venv/bin/python setup.py bdist_wheel -d /tmp
+            - run: /tmp/venv/bin/python -m pip install /tmp/yogadl*.whl
+            - run: /tmp/venv/bin/python -m pip install --no-deps --force-reinstall /tmp/yogadl*.whl
+      - run: |
+          if [ -n "<<parameters.extras-requires>>" ]; then /tmp/venv/bin/python -m pip install <<parameters.extras-requires>>; fi
+      - run: |
+          if [ -n "<<parameters.extra-requirements-file>>" ]; then /tmp/venv/bin/python -m pip install -r <<parameters.extra-requirements-file>>; fi
+      - save_cache:
+          key: yogadl-python-deps-v1dev1-{{ checksum "/tmp/cachefile" }}
+          paths:
+            - "/tmp/venv"
+
+jobs:
+  lint:
+    docker:
+      - image: python:3.6.9
+    steps:
+      - checkout
+      - setup-python-venv:
+          extra-requirements-file: "requirements.txt"
+      - run: make check
+
+  test:
+    parameters:
+      test-target:
+        type: string
+      tensorflow-version:
+        type: string
+        default: "2.1.0"
+      gcp:
+        type: boolean
+        default: false
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run: pyenv global 3.6.5
+      - setup-python-venv:
+          yogadl: true
+          extras-requires: "tensorflow==<<parameters.tensorflow-version>>"
+          extra-requirements-file: "requirements.txt"
+      - when:
+          condition: <<parameters.gcp>>
+          steps:
+            - gcp-cli/install
+            - activate-service-account
+      - run: make <<parameters.test-target>>
+
+workflows:
+  lint:
+    jobs:
+      - lint
+
+  test:
+    jobs:
+      - test:
+          context: aws
+          matrix:
+            parameters:
+              test-target: ["test-integration-aws"]
+              tensorflow-version: ["1.14.0", "2.1.0"]
+
+      - test:
+          context: aws
+          matrix:
+            parameters:
+              test-target: ["test-unit-aws"]
+
+      - test:
+          context: gcp
+          matrix:
+            parameters:
+              test-target: ["test-integration-gcp"]
+              tensorflow-version: ["1.14.0", "2.1.0"]
+              gcp: [true]
+
+      - test:
+          context: gcp
+          matrix:
+            parameters:
+              test-target: ["test-unit-gcp"]
+              gcp: [true]
+
+      - test:
+          matrix:
+            parameters:
+              test-target: ["test-integration-local"]
+              tensorflow-version: ["1.14.0", "2.1.0"]
+
+      - test:
+          matrix:
+            parameters:
+              test-target: ["test-unit-local"]
