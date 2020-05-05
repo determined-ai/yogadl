@@ -82,7 +82,9 @@ class GeneratorFromKeys:
     def _validate_args(self) -> None:
         if self._shuffle_after_epoch:
             assert self._shuffle_enabled, "`shuffle` must be enabled to use `shuffle_after_epoch`."
-            assert self._shuffle_seed, "`shuffle_seed` must be set to use `shuffle_after_epoch`."
+            assert (
+                self._shuffle_seed is not None
+            ), "`shuffle_seed` must be set to use `shuffle_after_epoch`."
 
     def instantiate_generator(self) -> Generator[Any, None, None]:
         keys = self._shuffle_keys() if self._shuffle_enabled else self._keys
@@ -98,7 +100,7 @@ class GeneratorFromKeys:
     def _shuffle_keys(self) -> List[bytes]:
         shuffle_seed = self._shuffle_seed
         if self._current_epoch > 0 and self._shuffle_after_epoch:
-            assert shuffle_seed
+            assert shuffle_seed is not None
             shuffle_seed += self._current_epoch
 
         return shuffle_keys(keys=copy.deepcopy(self._keys), seed=shuffle_seed)

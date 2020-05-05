@@ -37,7 +37,7 @@ class LMDBDataRef(yogadl.DataRef):
         Create a stream from a cache.
         """
         if shuffle and not skip_shuffle_at_epoch_end:
-            assert shuffle_seed, (
+            assert shuffle_seed is not None, (
                 "Please set `shuffle_seed` if enabling `shuffle` and not enabling "
                 "`skip_shuffle_at_epoch_end`."
             )
