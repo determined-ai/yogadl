@@ -26,6 +26,8 @@ setup(
     author_email="hello@determined.ai",
     url="https://www.github.com/determined-ai/yogadl/",
     description="Yoga Data Layer, a flexible data layer for machine learning",
+    license="Apache License 2.0",
+    classifiers=["License :: OSI Approved :: Apache Software License"],
     long_description=README,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
