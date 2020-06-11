@@ -4,9 +4,9 @@ A better approach to data loading for Deep Learning.  API-transparent caching to
 
 ## Why `yogadl`?
 
-At Determined AI, we help many customers perform high-performance data loading for deep learning
-models.  We believe every data loader should have two layers: the **random-access layer** and the
-**sequential layer**.
+At [Determined AI](https://determined.ai), we help many of our customers perform high-performance data
+loading for deep learning models.  We believe every data loader should have two layers: the
+**random-access layer** and the **sequential layer**.
 
 The **random-access layer** is critical for good training infrastructure.  Direct random access to
 any record enables:
@@ -133,6 +133,13 @@ First-class support for (tf.)Keras `Sequence` objects, PyTorch `DataSet` objects
 `yogadl` offers basic dataset versioning, but it is not (at this time) a full-blown version control
 for datasets.  Offering something like version control for datasets is on the roadmap as well.
 
-<!-- ## How do I use `yogadl`? -->
+## Installing `yogadl`
 
-<!-- TODO: code examples here. -->
+`yogadl` can be installed via `pip install yogadl`.
+
+## Further Information
+
+Please refer to the following links for more information:
+ - [YogaDL official documentation](https://yogadl.readthedocs.io/)
+ - [YogaDL examples](https://yogadl.readthedocs.io/examples)
+ - [YogaDL API Reference](https://yogadl.readthedocs.io/api)

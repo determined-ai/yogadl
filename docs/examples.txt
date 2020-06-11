@@ -1,0 +1,156 @@
+Examples
+========
+
+The following examples will walk you through the core concepts of YogaDL:
+storing, fetching, and streaming datasets.
+
+
+Creating a yogadl.Storage
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Most users will interact with :class:`yogadl.Storage` object as a mechanism for
+storing and fetching datasets. The simplest ``Storage`` is the
+:class:`yogadl.storage.LFSStorage`, or "local filesystem storage". Let's create
+one:
+
+.. literalinclude:: ../examples/walkthrough.py
+   :language: python
+   :start-after: START creating a yogadl.Storage
+   :end-before: END creating a yogadl.Storage
+
+YogaDL also comes with built-in support for GCS via
+:class:`yogadl.storage.GCSStorage` and for S3 via
+:class:`yogadl.storage.S3Storage`.
+
+Storing a dataset
+^^^^^^^^^^^^^^^^^
+
+Let's create a silly 10-record dataset and store it in the ``yogadl.Storage``.
+This is done via ``storage.submit()``. During ``storage.submit()``, the entire
+dataset will be read and written to the storage backend (in this case, to a
+file).
+
+.. literalinclude:: ../examples/walkthrough.py
+   :language: python
+   :start-after: START storing a dataset
+   :end-before: END storing a dataset
+
+
+Fetching a dataset
+^^^^^^^^^^^^^^^^^^
+
+Later (possibly in a different process), you can fetch a
+:class:`yogadl.DataRef` representing the dataset via ``storage.fetch()``.
+
+A ``DataRef`` is just a reference to a dataset. In this case, the dataset will
+be stored in a file on your computer, but a ``DataRef`` could just as easily
+refer to a dataset on some remote machine; the interface would be the same.
+
+To actually access the dataset, you need to first call ``dataref.stream()``,
+which will return a :class:`yogadl.Stream` object. Then you can convert the
+``Stream`` object to a framework-native data loader format (currently only
+``tf.data.Dataset`` is supported).
+
+.. literalinclude:: ../examples/walkthrough.py
+   :language: python
+   :start-after: START fetching a dataset
+   :end-before: END fetching a dataset
+
+This should print:
+
+.. code::
+
+    tf.Tensor([5 1 9 6 7], shape=(5,), dtype=int64)
+    tf.Tensor([1 7 3 9 8], shape=(5,), dtype=int64)
+    tf.Tensor([2 6 0 4 5], shape=(5,), dtype=int64)
+    tf.Tensor([9 5 3 0 8], shape=(5,), dtype=int64)
+    tf.Tensor([6 7 4 1 2], shape=(5,), dtype=int64)
+
+Notice that:
+
+ - The start_offset is only applied to the first epoch, so in this example
+   .repeat(3) gave us 2.5 epochs of data since we skipped the first epoch.
+ - The shuffle is a true shuffle. The shuffled stream samples from the whole
+   dataset without any concept of a "buffer", as with
+   ``tf.data.Dataset.shuffle()``
+ - The shuffle is reproducible because we chose a shuffle seed.
+ - Each epoch is reshuffled.
+
+
+Can I get the same features in fewer steps?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As a matter of fact, you can! In order to support the common use-case of
+running the same dataset through many different models during model development
+or hyperparameter search, you can use the ``storage.cacheable()`` decorator to
+decorate a function that returns a datastet.
+
+When the decorated function is called the first time, it will run one time and
+save its output to ``storage``. On subsequent calls, the original function
+will not run, but its cached output will be returned instead.
+
+In this way, you can get the benefit of caching without a single script and
+only a single call against the ``storage`` object:
+
+.. literalinclude:: ../examples/walkthrough.py
+   :language: python
+   :start-after: START can I get the same features in fewer steps?
+   :end-before: END can I get the same features in fewer steps?
+
+The ``storage.cacheble()`` decorator is multi-processing safe, so if two
+identical processes are configured to use the same storage, only one of them
+will create and save the dataset. The other one will wait for the dataset to
+be saved and will then read the dataset from the cache.
+
+
+End-to-end training example:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Here is an example of how you might use YogaDL to train on the second half of
+an MNIST dataset. This illustrates the ability to continue training mid-dataset
+that is simply not natively possible with tf.keras. Without YogaDL, you could
+imitate this behavior using ``tf.data.Dataset.skip(N)``, but that is
+prohibitively expensive for large values of ``N``.
+
+.. note::
+
+   MNIST is such a small dataset that YogaDL is not going to outperform
+   any example that treats MNIST as an in-memory dataset.
+
+.. literalinclude:: ../examples/mnist.py
+   :language: python
+   :start-after: INCLUDE IN DOCS
+
+
+Advanced Use Case: Distributed Training
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sharding a dataset for use with distributed training is easy. If you are using
+Horovod for distributed training, you only need to alter the arguments of your
+call to ``DataRef.stream()``.
+
+.. code:: python
+
+    import horovod.tensorflow as hvd
+
+    ...
+
+    stream = dataref.stream(
+        shard_rank=hvd.rank(), num_shards=hvd.size()
+    )
+
+
+Advanced Use Case: Custom DataRef Objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have an advanced use case, like generating data on an external machine
+and streaming it to another machine for training or something, and you would
+like to integrate with a platform that allows you to submit your dataset as a
+``yogadl.DataRef``, you can implement a custom :class:`yogadl.DataRef`. By
+implementing the ``yogadl.DataRef`` interface, you can fully customize the
+behavior of how the platform interacts with your dataset. Here is a toy example
+of what that might look like:
+
+.. literalinclude:: ../examples/custom_data_ref.py
+   :language: python
+   :start-after: INCLUDE IN DOCS

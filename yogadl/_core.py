@@ -48,9 +48,15 @@ class Stream:
         self.output_shapes = output_shapes
 
     def __iter__(self) -> Any:
+        """
+        Iterate through the records in the stream.
+        """
         return self.iterator_fn()
 
     def __len__(self) -> int:
+        """
+        Return the length of the stream, which may differ from the length of the dataset.
+        """
         return self.length
 
 
@@ -78,10 +84,17 @@ class DataRef(metaclass=abc.ABCMeta):
         num_shards: int = 1,
         drop_shard_remainder: bool = False,
     ) -> Stream:
+        """
+        Create a sequentially accessible set of records from the dataset, according to the
+        random-access arguments given as parameters.
+        """
         pass
 
     @abc.abstractmethod
     def __len__(self) -> int:
+        """
+        Return the length of the dataset that the DataRef refers to.
+        """
         pass
 
 
