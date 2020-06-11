@@ -1,0 +1,23 @@
+yogadl.storage
+==============
+
+.. autoclass:: yogadl.storage.LFSConfigurations
+   :noindex:
+
+.. autoclass:: yogadl.storage.LFSStorage
+   :noindex:
+   :members:
+
+.. autoclass:: yogadl.storage.S3Configurations
+   :noindex:
+
+.. autoclass:: yogadl.storage.S3Storage
+   :noindex:
+   :inherited-members:
+
+.. autoclass:: yogadl.storage.GCSConfigurations
+   :noindex:
+
+.. autoclass:: yogadl.storage.GCSStorage
+   :noindex:
+   :inherited-members:

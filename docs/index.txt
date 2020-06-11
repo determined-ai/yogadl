@@ -1,0 +1,8 @@
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   api
+   examples
+
+.. mdinclude:: ../README.md

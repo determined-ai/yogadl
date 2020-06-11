@@ -3,19 +3,16 @@ all: check test
 check: black flake8 mypy
 
 black:
-	black --check yogadl
-	black --check tests
+	black --check yogadl tests
 
 flake8:
-	flake8 yogadl
-	flake8 tests
+	flake8 yogadl tests
 
 mypy:
-	mypy yogadl
-	mypy tests
+	mypy yogadl tests
 
 fmt:
-	black .
+	black yogadl tests
 
 TEST_EXPR ?= ""
 
