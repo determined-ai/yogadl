@@ -141,5 +141,5 @@ for datasets.  Offering something like version control for datasets is on the ro
 
 Please refer to the following links for more information:
  - [YogaDL official documentation](https://yogadl.readthedocs.io/)
- - [YogaDL examples](https://yogadl.readthedocs.io/examples)
- - [YogaDL API Reference](https://yogadl.readthedocs.io/api)
+ - [YogaDL examples](https://yogadl.readthedocs.io/en/latest/examples.html)
+ - [YogaDL API Reference](https://yogadl.readthedocs.io/en/latest/api.html)
