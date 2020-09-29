@@ -34,12 +34,16 @@ class S3Configurations(storage.BaseCloudConfigurations):
         secret_key: Optional[str] = None,
         endpoint_url: Optional[str] = None,
         local_cache_dir: str = "/tmp/",
+        skip_verify: bool = False,
+        coordinator_cert_file: Optional[str] = None,
     ) -> None:
         super().__init__(
             bucket=bucket,
             bucket_directory_path=bucket_directory_path,
             url=url,
             local_cache_dir=local_cache_dir,
+            skip_verify=skip_verify,
+            coordinator_cert_file=coordinator_cert_file,
         )
         self.access_key = access_key
         self.secret_key = secret_key
