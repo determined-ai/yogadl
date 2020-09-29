@@ -13,12 +13,12 @@
 # limitations under the License.
 # ==============================================================================
 import abc
-import datetime
 import contextlib
+import datetime
 import json
 import logging
 import pathlib
-from typing import Any, Callable, cast, Dict, Generator, Optional
+from typing import Any, Callable, Dict, Generator, Optional, cast
 
 import filelock
 import tensorflow as tf
@@ -38,12 +38,16 @@ class BaseCloudConfigurations(metaclass=abc.ABCMeta):
         bucket_directory_path: str,
         url: str,
         local_cache_dir: str,
+        skip_verify: bool,
+        coordinator_cert_file: Optional[str],
     ) -> None:
         self.bucket = bucket
         self.bucket_directory_path = pathlib.Path(bucket_directory_path)
         self.url = url
         self.local_cache_dir = pathlib.Path(local_cache_dir)
         self.cache_format = "LMDB"
+        self.skip_verify = skip_verify
+        self.coordinator_cert_file = coordinator_cert_file
 
 
 class BaseCloudStorage(yogadl.Storage):
@@ -60,7 +64,11 @@ class BaseCloudStorage(yogadl.Storage):
         tensorflow_config: Optional[tf.compat.v1.ConfigProto],
     ) -> None:
         self._configurations = configurations
-        self._rw_client = rw_coordinator.RwCoordinatorClient(url=self._configurations.url)
+        self._rw_client = rw_coordinator.RwCoordinatorClient(
+            url=self._configurations.url,
+            skip_verify=self._configurations.skip_verify,
+            coordinator_cert_file=self._configurations.coordinator_cert_file,
+        )
         self._supported_cache_formats = ["LMDB"]
         self._tensorflow_config = tensorflow_config
 

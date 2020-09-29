@@ -15,12 +15,38 @@
 import contextlib
 import logging
 import pathlib
+import socket
+import ssl
 import urllib.parse
-from typing import Generator
+from typing import Generator, Optional
 
 import lomond
 
 from yogadl.rw_coordinator import communication_protocol
+
+
+class CustomSSLWebsocketSession(lomond.session.WebsocketSession):  # type: ignore
+    """
+    A session class that allows for the TLS verification mode of a WebSocket connection to be
+    configured.
+    """
+
+    def __init__(
+        self, socket: lomond.WebSocket, skip_verify: bool, coordinator_cert_file: Optional[str]
+    ) -> None:
+        super().__init__(socket)
+        self.ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        if skip_verify:
+            return
+        self.ctx.verify_mode = ssl.CERT_REQUIRED
+        self.ctx.check_hostname = True
+        if coordinator_cert_file is not None:
+            self.ctx.load_verify_locations(cafile=coordinator_cert_file)
+        else:
+            self.ctx.load_default_certs()
+
+    def _wrap_socket(self, sock: socket.SocketType, host: str) -> socket.SocketType:
+        return self.ctx.wrap_socket(sock, server_hostname=host)
 
 
 class RwCoordinatorClient:
@@ -31,8 +57,12 @@ class RwCoordinatorClient:
     AccessServer must be running during lock request.
     """
 
-    def __init__(self, url: str):
+    def __init__(
+        self, url: str, skip_verify: bool = False, coordinator_cert_file: Optional[str] = None
+    ):
         self._url = url
+        self._skip_verify = skip_verify
+        self._coordinator_cert_file = coordinator_cert_file
 
     def _construct_url_request(
         self, storage_type: str, bucket: str, cache_path: pathlib.Path, read_lock: bool
@@ -51,7 +81,11 @@ class RwCoordinatorClient:
         self, lock_request_url: str, expected_response: str
     ) -> Generator[None, None, None]:
         with lomond.WebSocket(lock_request_url) as socket:
-            for event in socket.connect():
+            for event in socket.connect(
+                session_class=lambda socket: CustomSSLWebsocketSession(
+                    socket, self._skip_verify, self._coordinator_cert_file
+                )
+            ):
                 if isinstance(event, lomond.events.Text):
                     assert event.text == expected_response
                     yield

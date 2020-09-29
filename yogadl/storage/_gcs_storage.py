@@ -31,12 +31,16 @@ class GCSConfigurations(storage.BaseCloudConfigurations):
         bucket_directory_path: str,
         url: str,
         local_cache_dir: str = "/tmp/",
+        skip_verify: bool = False,
+        coordinator_cert_file: Optional[str] = None,
     ) -> None:
         super().__init__(
             bucket=bucket,
             bucket_directory_path=bucket_directory_path,
             url=url,
             local_cache_dir=local_cache_dir,
+            skip_verify=skip_verify,
+            coordinator_cert_file=coordinator_cert_file,
         )
 
 
