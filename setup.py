@@ -21,7 +21,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="yogadl",
-    version="0.1.1",
+    version="0.1.2",
     author="Determined AI",
     author_email="hello@determined.ai",
     url="https://www.github.com/determined-ai/yogadl/",
