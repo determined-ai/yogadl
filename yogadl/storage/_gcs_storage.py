@@ -26,7 +26,11 @@ from yogadl import storage
 
 class GCSConfigurations(storage.BaseCloudConfigurations):
     def __init__(
-        self, bucket: str, bucket_directory_path: str, url: str, local_cache_dir: str = "/tmp/",
+        self,
+        bucket: str,
+        bucket_directory_path: str,
+        url: str,
+        local_cache_dir: str = "/tmp/",
     ) -> None:
         super().__init__(
             bucket=bucket,
@@ -82,7 +86,8 @@ class GCSStorage(storage.BaseCloudStorage):
     def _is_cloud_cache_present(self, dataset_id: str, dataset_version: str) -> bool:
 
         gcs_cache_filepath = self._get_remote_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
         blob = self._bucket.blob(str(gcs_cache_filepath))
 
@@ -96,7 +101,8 @@ class GCSStorage(storage.BaseCloudStorage):
     ) -> datetime.datetime:
 
         gcs_cache_filepath = self._get_remote_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
         blob = self._bucket.blob(str(gcs_cache_filepath))
 
@@ -121,7 +127,8 @@ class GCSStorage(storage.BaseCloudStorage):
     ) -> datetime.datetime:
 
         gcs_cache_filepath = self._get_remote_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
         blob = self._bucket.blob(str(gcs_cache_filepath))
 
@@ -144,7 +151,8 @@ class GCSStorage(storage.BaseCloudStorage):
     ) -> datetime.datetime:
 
         gcs_cache_filepath = self._get_remote_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
         blob = self._bucket.blob(str(gcs_cache_filepath))
 

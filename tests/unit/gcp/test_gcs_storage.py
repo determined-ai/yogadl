@@ -75,7 +75,9 @@ def test_gcs_storage_submit() -> None:
     client = google_storage.Client()
     bucket = client.bucket(configurations.bucket)
     gcs_cache_filepath = get_gcs_filepath(
-        configurations=configurations, dataset_id=dataset_id, dataset_version=dataset_version,
+        configurations=configurations,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
     blob = bucket.blob(str(gcs_cache_filepath))
 
@@ -86,7 +88,9 @@ def test_gcs_storage_submit() -> None:
 
     gcs_storage = storage.GCSStorage(configurations=configurations)
     gcs_storage.submit(
-        data=dataset, dataset_id=dataset_id, dataset_version=dataset_version,
+        data=dataset,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
 
     blob = bucket.blob(str(gcs_cache_filepath))
@@ -109,12 +113,16 @@ def test_gcs_storage_local_metadata() -> None:
     client = google_storage.Client()
     bucket = client.bucket(configurations.bucket)
     gcs_cache_filepath = get_gcs_filepath(
-        configurations=configurations, dataset_id=dataset_id, dataset_version=dataset_version,
+        configurations=configurations,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
 
     gcs_storage = storage.GCSStorage(configurations=configurations)
     gcs_storage.submit(
-        data=dataset, dataset_id=dataset_id, dataset_version=dataset_version,
+        data=dataset,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
 
     local_metadata_filepath = get_local_metadata_filepath(
@@ -147,7 +155,9 @@ def test_gcs_storage_submit_and_fetch() -> None:
 
     gcs_storage = storage.GCSStorage(configurations=configurations)
     gcs_storage.submit(
-        data=dataset, dataset_id=dataset_id, dataset_version=dataset_version,
+        data=dataset,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
     dataref = gcs_storage.fetch(dataset_id=dataset_id, dataset_version=dataset_version)
     stream = dataref.stream()
@@ -172,7 +182,9 @@ def test_gcs_storage_cacheable_single_threaded() -> None:
     access_server_handler.run_server_in_thread()
 
     gcs_cache_filepath = get_gcs_filepath(
-        configurations=configurations, dataset_id=dataset_id, dataset_version=dataset_version,
+        configurations=configurations,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
     client = google_storage.Client()
     bucket = client.bucket(configurations.bucket)
@@ -233,7 +245,9 @@ class MultiThreadedTests(thread.ThreadAwareTestCase):  # type: ignore
         access_server_handler.run_server_in_thread()
 
         gcs_cache_filepath = get_gcs_filepath(
-            configurations=configurations, dataset_id=dataset_id, dataset_version=dataset_version,
+            configurations=configurations,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
         client = google_storage.Client()
         bucket = client.bucket(configurations.bucket)
