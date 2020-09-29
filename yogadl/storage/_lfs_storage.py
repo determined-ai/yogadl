@@ -61,7 +61,8 @@ class LFSStorage(yogadl.Storage):
         If a cache with a matching filepath already exists, it will be overwritten.
         """
         cache_filepath = self._get_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
         cache_filepath.parent.mkdir(parents=True, exist_ok=True)
 

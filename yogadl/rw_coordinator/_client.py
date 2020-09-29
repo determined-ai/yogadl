@@ -62,7 +62,10 @@ class RwCoordinatorClient:
         self, storage_type: str, bucket: str, cache_path: pathlib.Path
     ) -> Generator[None, None, None]:
         lock_request_url = self._construct_url_request(
-            storage_type=storage_type, bucket=bucket, cache_path=cache_path, read_lock=True,
+            storage_type=storage_type,
+            bucket=bucket,
+            cache_path=cache_path,
+            read_lock=True,
         )
 
         try:
@@ -80,7 +83,10 @@ class RwCoordinatorClient:
         self, storage_type: str, bucket: str, cache_path: pathlib.Path
     ) -> Generator[None, None, None]:
         lock_request_url = self._construct_url_request(
-            storage_type=storage_type, bucket=bucket, cache_path=cache_path, read_lock=False,
+            storage_type=storage_type,
+            bucket=bucket,
+            cache_path=cache_path,
+            read_lock=False,
         )
 
         try:

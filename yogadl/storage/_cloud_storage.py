@@ -33,7 +33,11 @@ class BaseCloudConfigurations(metaclass=abc.ABCMeta):
     """
 
     def __init__(
-        self, bucket: str, bucket_directory_path: str, url: str, local_cache_dir: str,
+        self,
+        bucket: str,
+        bucket_directory_path: str,
+        url: str,
+        local_cache_dir: str,
     ) -> None:
         self.bucket = bucket
         self.bucket_directory_path = pathlib.Path(bucket_directory_path)
@@ -97,7 +101,8 @@ class BaseCloudStorage(yogadl.Storage):
         `cacheable()`.
         """
         local_cache_filepath = self._get_local_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
         local_cache_filepath.parent.mkdir(parents=True, exist_ok=True)
 
@@ -128,7 +133,9 @@ class BaseCloudStorage(yogadl.Storage):
 
         local_metadata["time_created"] = timestamp
         self._save_local_metadata(
-            dataset_id=dataset_id, dataset_version=dataset_version, metadata=local_metadata,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
+            metadata=local_metadata,
         )
 
     def fetch(self, dataset_id: str, dataset_version: str) -> dataref.LMDBDataRef:
@@ -147,7 +154,8 @@ class BaseCloudStorage(yogadl.Storage):
             dataset_id=dataset_id, dataset_version=dataset_version
         )
         local_cache_filepath = self._get_local_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
 
         remote_cache_timestamp = self._get_remote_cache_timestamp(
@@ -166,7 +174,9 @@ class BaseCloudStorage(yogadl.Storage):
             logging.info("Cache download finished.")
 
             self._save_local_metadata(
-                dataset_id=dataset_id, dataset_version=dataset_version, metadata=local_metadata,
+                dataset_id=dataset_id,
+                dataset_version=dataset_version,
+                metadata=local_metadata,
             )
 
         assert local_cache_filepath.exists()
@@ -224,7 +234,8 @@ class BaseCloudStorage(yogadl.Storage):
         ):
             if self._is_cloud_cache_present(dataset_id=dataset_id, dataset_version=dataset_version):
                 with self._lock_local_cache(
-                    dataset_id=dataset_id, dataset_version=dataset_version,
+                    dataset_id=dataset_id,
+                    dataset_version=dataset_version,
                 ):
                     local_lmdb_dataref = self.fetch(
                         dataset_id=dataset_id, dataset_version=dataset_version
@@ -233,7 +244,12 @@ class BaseCloudStorage(yogadl.Storage):
         return local_lmdb_dataref
 
     def _try_writing_to_cloud_storage(
-        self, dataset_id: str, dataset_version: str, f: Callable, args: Any, kwargs: Any,
+        self,
+        dataset_id: str,
+        dataset_version: str,
+        f: Callable,
+        args: Any,
+        kwargs: Any,
     ) -> None:
         remote_cache_path = self._get_remote_cache_filepath(
             dataset_id=dataset_id, dataset_version=dataset_version
@@ -249,7 +265,8 @@ class BaseCloudStorage(yogadl.Storage):
                 dataset_id=dataset_id, dataset_version=dataset_version
             ):
                 with self._lock_local_cache(
-                    dataset_id=dataset_id, dataset_version=dataset_version,
+                    dataset_id=dataset_id,
+                    dataset_version=dataset_version,
                 ):
                     self.submit(
                         data=f(*args, **kwargs),
@@ -303,7 +320,8 @@ class BaseCloudStorage(yogadl.Storage):
 
     def _get_local_metadata(self, dataset_id: str, dataset_version: str) -> Dict[str, Any]:
         metadata_filepath = self._get_local_metadata_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
 
         if not metadata_filepath.exists():
@@ -316,7 +334,8 @@ class BaseCloudStorage(yogadl.Storage):
         self, dataset_id: str, dataset_version: str, metadata: Dict[str, Any]
     ) -> None:
         metadata_filepath = self._get_local_metadata_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
 
         with open(str(metadata_filepath), "w") as metadata_file:

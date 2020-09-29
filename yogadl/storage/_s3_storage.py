@@ -98,7 +98,8 @@ class S3Storage(storage.BaseCloudStorage):
     def _is_cloud_cache_present(self, dataset_id: str, dataset_version: str) -> bool:
 
         s3_cache_filepath = self._get_remote_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
 
         try:
@@ -114,7 +115,8 @@ class S3Storage(storage.BaseCloudStorage):
     ) -> datetime.datetime:
 
         s3_cache_filepath = self._get_remote_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
 
         try:
@@ -138,7 +140,8 @@ class S3Storage(storage.BaseCloudStorage):
     ) -> datetime.datetime:
 
         s3_cache_filepath = self._get_remote_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
 
         try:
@@ -151,7 +154,8 @@ class S3Storage(storage.BaseCloudStorage):
             raise AssertionError(f"Failed to upload file to S3 with exception: {error}.")
 
         return self._get_remote_cache_timestamp(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
 
     def _get_remote_cache_timestamp(
@@ -159,7 +163,8 @@ class S3Storage(storage.BaseCloudStorage):
     ) -> datetime.datetime:
 
         s3_cache_filepath = self._get_remote_cache_filepath(
-            dataset_id=dataset_id, dataset_version=dataset_version,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
 
         try:

@@ -75,7 +75,9 @@ def test_s3_storage_submit() -> None:
 
     client = boto3.client("s3")
     aws_cache_filepath = get_s3_filepath(
-        configurations=configurations, dataset_id=dataset_id, dataset_version=dataset_version,
+        configurations=configurations,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
 
     try:
@@ -86,7 +88,9 @@ def test_s3_storage_submit() -> None:
 
     s3_storage = storage.S3Storage(configurations=configurations)
     s3_storage.submit(
-        data=dataset, dataset_id=dataset_id, dataset_version=dataset_version,
+        data=dataset,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
 
     blob_info = client.head_object(Bucket=configurations.bucket, Key=str(aws_cache_filepath))
@@ -106,12 +110,16 @@ def test_s3_storage_local_metadata() -> None:
 
     client = boto3.client("s3")
     aws_cache_filepath = get_s3_filepath(
-        configurations=configurations, dataset_id=dataset_id, dataset_version=dataset_version,
+        configurations=configurations,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
 
     s3_storage = storage.S3Storage(configurations=configurations)
     s3_storage.submit(
-        data=dataset, dataset_id=dataset_id, dataset_version=dataset_version,
+        data=dataset,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
 
     local_metadata_filepath = get_local_metadata_filepath(
@@ -144,7 +152,9 @@ def test_s3_storage_submit_and_fetch() -> None:
 
     s3_storage = storage.S3Storage(configurations=configurations)
     s3_storage.submit(
-        data=dataset, dataset_id=dataset_id, dataset_version=dataset_version,
+        data=dataset,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
     dataref = s3_storage.fetch(dataset_id=dataset_id, dataset_version=dataset_version)
     stream = dataref.stream()
@@ -169,7 +179,9 @@ def test_s3_storage_cacheable_single_threaded() -> None:
     access_server_handler.run_server_in_thread()
 
     s3_cache_filepath = get_s3_filepath(
-        configurations=configurations, dataset_id=dataset_id, dataset_version=dataset_version,
+        configurations=configurations,
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
     )
     client = boto3.client("s3")
     client.delete_object(Bucket=configurations.bucket, Key=str(s3_cache_filepath))
@@ -225,7 +237,9 @@ class MultiThreadedTests(thread.ThreadAwareTestCase):  # type: ignore
         access_server_handler.run_server_in_thread()
 
         s3_cache_filepath = get_s3_filepath(
-            configurations=configurations, dataset_id=dataset_id, dataset_version=dataset_version,
+            configurations=configurations,
+            dataset_id=dataset_id,
+            dataset_version=dataset_version,
         )
         client = boto3.client("s3")
         client.delete_object(Bucket=configurations.bucket, Key=str(s3_cache_filepath))

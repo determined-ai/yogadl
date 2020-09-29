@@ -43,7 +43,9 @@ class LMDBDataRef(yogadl.DataRef):
             )
 
         generated_keys = self._shard_keys(
-            shard_rank=shard_rank, num_shards=num_shards, drop_shard_remainder=drop_shard_remainder,
+            shard_rank=shard_rank,
+            num_shards=num_shards,
+            drop_shard_remainder=drop_shard_remainder,
         )
 
         generator_from_keys = yogadl.GeneratorFromKeys(
