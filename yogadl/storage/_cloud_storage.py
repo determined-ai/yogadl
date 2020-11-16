@@ -40,6 +40,7 @@ class BaseCloudConfigurations(metaclass=abc.ABCMeta):
         local_cache_dir: str,
         skip_verify: bool,
         coordinator_cert_file: Optional[str],
+        coordinator_cert_name: Optional[str],
     ) -> None:
         self.bucket = bucket
         self.bucket_directory_path = pathlib.Path(bucket_directory_path)
@@ -48,6 +49,7 @@ class BaseCloudConfigurations(metaclass=abc.ABCMeta):
         self.cache_format = "LMDB"
         self.skip_verify = skip_verify
         self.coordinator_cert_file = coordinator_cert_file
+        self.coordinator_cert_name = coordinator_cert_name
 
 
 class BaseCloudStorage(yogadl.Storage):
@@ -68,6 +70,7 @@ class BaseCloudStorage(yogadl.Storage):
             url=self._configurations.url,
             skip_verify=self._configurations.skip_verify,
             coordinator_cert_file=self._configurations.coordinator_cert_file,
+            coordinator_cert_name=self._configurations.coordinator_cert_name,
         )
         self._supported_cache_formats = ["LMDB"]
         self._tensorflow_config = tensorflow_config

@@ -32,21 +32,27 @@ class CustomSSLWebsocketSession(lomond.session.WebsocketSession):  # type: ignor
     """
 
     def __init__(
-        self, socket: lomond.WebSocket, skip_verify: bool, coordinator_cert_file: Optional[str]
+        self,
+        socket: lomond.WebSocket,
+        skip_verify: bool,
+        coordinator_cert_file: Optional[str],
+        coordinator_cert_name: Optional[str],
     ) -> None:
         super().__init__(socket)
+        self._coordinator_cert_name = coordinator_cert_name
+
         self.ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+
         if skip_verify:
             return
         self.ctx.verify_mode = ssl.CERT_REQUIRED
         self.ctx.check_hostname = True
+        self.ctx.load_default_certs()
         if coordinator_cert_file is not None:
             self.ctx.load_verify_locations(cafile=coordinator_cert_file)
-        else:
-            self.ctx.load_default_certs()
 
     def _wrap_socket(self, sock: socket.SocketType, host: str) -> socket.SocketType:
-        return self.ctx.wrap_socket(sock, server_hostname=host)
+        return self.ctx.wrap_socket(sock, server_hostname=self._coordinator_cert_name or host)
 
 
 class RwCoordinatorClient:
@@ -58,11 +64,16 @@ class RwCoordinatorClient:
     """
 
     def __init__(
-        self, url: str, skip_verify: bool = False, coordinator_cert_file: Optional[str] = None
+        self,
+        url: str,
+        skip_verify: bool = False,
+        coordinator_cert_file: Optional[str] = None,
+        coordinator_cert_name: Optional[str] = None,
     ):
         self._url = url
         self._skip_verify = skip_verify
         self._coordinator_cert_file = coordinator_cert_file
+        self._coordinator_cert_name = coordinator_cert_name
 
     def _construct_url_request(
         self, storage_type: str, bucket: str, cache_path: pathlib.Path, read_lock: bool
@@ -83,10 +94,15 @@ class RwCoordinatorClient:
         with lomond.WebSocket(lock_request_url) as socket:
             for event in socket.connect(
                 session_class=lambda socket: CustomSSLWebsocketSession(
-                    socket, self._skip_verify, self._coordinator_cert_file
+                    socket,
+                    self._skip_verify,
+                    self._coordinator_cert_file,
+                    self._coordinator_cert_name,
                 )
             ):
-                if isinstance(event, lomond.events.Text):
+                if isinstance(event, lomond.events.ConnectFail):
+                    raise ConnectionError(f"connect({self._url}): {event}")
+                elif isinstance(event, lomond.events.Text):
                     assert event.text == expected_response
                     yield
                     socket.close()
@@ -102,15 +118,11 @@ class RwCoordinatorClient:
             read_lock=True,
         )
 
-        try:
-            with self._request_lock(
-                lock_request_url=lock_request_url,
-                expected_response=communication_protocol.READ_LOCK_GRANTED,
-            ):
-                yield
-        except RuntimeError:
-            logging.warning(f"Can not reach access server at: {self._url}.")
-            raise
+        with self._request_lock(
+            lock_request_url=lock_request_url,
+            expected_response=communication_protocol.READ_LOCK_GRANTED,
+        ):
+            yield
 
     @contextlib.contextmanager
     def write_lock(
@@ -123,12 +135,8 @@ class RwCoordinatorClient:
             read_lock=False,
         )
 
-        try:
-            with self._request_lock(
-                lock_request_url=lock_request_url,
-                expected_response=communication_protocol.WRITE_LOCK_GRANTED,
-            ):
-                yield
-        except RuntimeError:
-            logging.warning(f"Can not reach access server at: {self._url}.")
-            raise
+        with self._request_lock(
+            lock_request_url=lock_request_url,
+            expected_response=communication_protocol.WRITE_LOCK_GRANTED,
+        ):
+            yield
