@@ -33,6 +33,7 @@ class GCSConfigurations(storage.BaseCloudConfigurations):
         local_cache_dir: str = "/tmp/",
         skip_verify: bool = False,
         coordinator_cert_file: Optional[str] = None,
+        coordinator_cert_name: Optional[str] = None,
     ) -> None:
         super().__init__(
             bucket=bucket,
@@ -41,6 +42,7 @@ class GCSConfigurations(storage.BaseCloudConfigurations):
             local_cache_dir=local_cache_dir,
             skip_verify=skip_verify,
             coordinator_cert_file=coordinator_cert_file,
+            coordinator_cert_name=coordinator_cert_name,
         )
 
 

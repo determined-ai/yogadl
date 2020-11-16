@@ -17,7 +17,7 @@ import async_generator
 import logging
 import time
 import urllib.parse
-from typing import Dict, Generator, Optional
+from typing import Any, Dict, Generator, Optional
 
 import websockets
 
@@ -75,9 +75,15 @@ class RwCoordinatorServer:
     RwCoordinatorServer concurrently.
     """
 
-    def __init__(self, hostname: Optional[str] = None, port: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        hostname: Optional[str] = None,
+        port: Optional[int] = None,
+        ssl_context: Optional[Any] = None,
+    ) -> None:
         self._hostname = hostname
         self._port = port
+        self._ssl_context = ssl_context
 
         # Used to access rw_locks dictionary.
         self._global_lock = asyncio.Lock()
@@ -87,7 +93,10 @@ class RwCoordinatorServer:
 
     async def run_server(self) -> None:
         self._server = await websockets.serve(
-            self._process_lock_request, self._hostname, self._port
+            self._process_lock_request,
+            self._hostname,
+            self._port,
+            ssl=self._ssl_context,
         )
 
     def stop_server(self) -> None:
