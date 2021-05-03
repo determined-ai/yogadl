@@ -30,43 +30,35 @@ commands:
       extra-requirements-file:
         type: string
         default: ""
+      use-pyenv:
+        type: boolean
+        default: false
     steps:
-      - run: python3.6 -m venv /tmp/venv
-      - run: echo "export PATH=/tmp/venv/bin:\"${PATH}\"" >> $BASH_ENV
-      - run: /tmp/venv/bin/python -m pip install --upgrade pip\<20 wheel setuptools
+      - when:
+          condition: <<parameters.use-pyenv>>
+          steps:
+            - run: pyenv install 3.7.10
+            - run: pyenv global 3.7.10
+      - run: pip3 install --upgrade pip wheel setuptools
 
-
-      # Write dependencies to cachefile to help create the cachekey
+      # Put all the pip requirements into a single /tmp/requirements.txt file.
+      - run: echo <<parameters.extras-requires>> > /tmp/requirements.txt
+      - run: cat <<parameters.extra-requirements-file>> >> /tmp/requirements.txt
+      - run: cat /tmp/requirements.txt >> /tmp/cachefile
       - when:
           condition: <<parameters.yogadl>>
           steps:
-            - run: cat setup.py >> /tmp/cachefile
-      - run: echo <<parameters.extras-requires>> >> /tmp/cachefile
-      - run: |
-          if [ -n <<parameters.extra-requirements-file>> ]; then cat <<parameters.extra-requirements-file>> >> /tmp/cachefile; fi
-
-      - restore_cache:
-          keys:
-            - yogadl-python-deps-v1dev2-{{ checksum "/tmp/cachefile" }}
-      - when:
-          condition: <<parameters.yogadl>>
-          steps:
-            - run: /tmp/venv/bin/python setup.py bdist_wheel -d /tmp
-            - run: /tmp/venv/bin/python -m pip install /tmp/yogadl*.whl
-            - run: /tmp/venv/bin/python -m pip install --no-deps --force-reinstall /tmp/yogadl*.whl
-      - run: |
-          if [ -n "<<parameters.extras-requires>>" ]; then /tmp/venv/bin/python -m pip install <<parameters.extras-requires>>; fi
-      - run: |
-          if [ -n "<<parameters.extra-requirements-file>>" ]; then /tmp/venv/bin/python -m pip install -r <<parameters.extra-requirements-file>>; fi
-      - save_cache:
-          key: yogadl-python-deps-v1dev2-{{ checksum "/tmp/cachefile" }}
-          paths:
-            - "/tmp/venv"
+            - run: python3 setup.py bdist_wheel -d /tmp
+            - run: pip3 install /tmp/yogadl*.whl
+            - run: pip3 install --no-deps --force-reinstall /tmp/yogadl*.whl
+      - run: pip3 install -r /tmp/requirements.txt
+      # Useful diagnostics for test failures.
+      - run: pip3 freeze
 
 jobs:
   lint:
     docker:
-      - image: python:3.6.9
+    - image: cimg/python:3.7
     steps:
       - checkout
       - setup-python-venv:
@@ -79,17 +71,17 @@ jobs:
         type: string
       tensorflow-version:
         type: string
-        default: "2.1.0"
+        default: "2.4.1"
       gcp:
         type: boolean
         default: false
     machine:
-      image: ubuntu-1604:202004-01
+      image: ubuntu-2004:202104-01
     steps:
       - checkout
-      - run: pyenv global 3.6.10
       - setup-python-venv:
           yogadl: true
+          use-pyenv: true
           extras-requires: "tensorflow==<<parameters.tensorflow-version>>"
           extra-requirements-file: "requirements.txt"
       - when:
@@ -111,7 +103,7 @@ workflows:
           matrix:
             parameters:
               test-target: ["test-integration-aws"]
-              tensorflow-version: ["1.14.0", "2.1.0"]
+              tensorflow-version: ["1.15.5", "2.4.1"]
 
       - test:
           context: aws
@@ -124,7 +116,7 @@ workflows:
           matrix:
             parameters:
               test-target: ["test-integration-gcp"]
-              tensorflow-version: ["1.14.0", "2.1.0"]
+              tensorflow-version: ["1.15.5", "2.4.1"]
               gcp: [true]
 
       - test:
@@ -138,7 +130,7 @@ workflows:
           matrix:
             parameters:
               test-target: ["test-integration-local"]
-              tensorflow-version: ["1.14.0", "2.1.0"]
+              tensorflow-version: ["2.4.1"]  # Note: local examples don't support 1.15.5
 
       - test:
           matrix:
