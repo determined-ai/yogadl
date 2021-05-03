@@ -31,7 +31,7 @@ commands:
         type: string
         default: ""
     steps:
-      - run: python3.6 -m venv /tmp/venv
+      - run: python3 -m venv /tmp/venv
       - run: echo "export PATH=/tmp/venv/bin:\"${PATH}\"" >> $BASH_ENV
       - run: /tmp/venv/bin/python -m pip install --upgrade pip\<20 wheel setuptools
 
@@ -66,7 +66,7 @@ commands:
 jobs:
   lint:
     docker:
-      - image: python:3.6.9
+      - image: python:3.8.5
     steps:
       - checkout
       - setup-python-venv:
@@ -84,10 +84,10 @@ jobs:
         type: boolean
         default: false
     machine:
-      image: ubuntu-1604:202004-01
+      image: ubuntu-2004
     steps:
       - checkout
-      - run: pyenv global 3.6.10
+      - run: pyenv global 3.8.5
       - setup-python-venv:
           yogadl: true
           extras-requires: "tensorflow==<<parameters.tensorflow-version>>"
@@ -111,7 +111,7 @@ workflows:
           matrix:
             parameters:
               test-target: ["test-integration-aws"]
-              tensorflow-version: ["1.14.0", "2.1.0"]
+              tensorflow-version: ["1.15.1", "2.4.1"]
 
       - test:
           context: aws
@@ -124,7 +124,7 @@ workflows:
           matrix:
             parameters:
               test-target: ["test-integration-gcp"]
-              tensorflow-version: ["1.14.0", "2.1.0"]
+              tensorflow-version: ["1.15.1", "2.4.1"]
               gcp: [true]
 
       - test:
@@ -138,7 +138,7 @@ workflows:
           matrix:
             parameters:
               test-target: ["test-integration-local"]
-              tensorflow-version: ["1.14.0", "2.1.0"]
+              tensorflow-version: ["1.15.1", "2.4.1"]
 
       - test:
           matrix:
