@@ -53,7 +53,7 @@ commands:
       - run: cat /tmp/requirements.txt >> /tmp/cachefile
       - restore_cache:
           keys:
-            - yogadl-python-deps-v1dev3-{{ checksum "/tmp/cachefile" }}
+            - yogadl-python-deps-v1dev4-{{ checksum "/tmp/cachefile" }}
       - when:
           condition: <<parameters.yogadl>>
           steps:
@@ -62,7 +62,7 @@ commands:
             - run: pip3 install --no-deps --force-reinstall /tmp/yogadl*.whl
       - run: pip3 install -r /tmp/requirements.txt
       - save_cache:
-          key: yogadl-python-deps-v1dev3-{{ checksum "/tmp/cachefile" }}
+          key: yogadl-python-deps-v1dev4-{{ checksum "/tmp/cachefile" }}
           paths:
             - "/tmp/venv"
       # Useful diagnostics for test failures.
@@ -71,7 +71,7 @@ commands:
 jobs:
   lint:
     docker:
-      - image: python:3.8.5
+      - image: python:3.6.9
     steps:
       - checkout
       - setup-python-venv:
@@ -89,7 +89,7 @@ jobs:
         type: boolean
         default: false
     machine:
-      image: ubuntu-2004:202104-01
+      image: ubuntu-1604:202004-01
     steps:
       - checkout
       - setup-python-venv:
