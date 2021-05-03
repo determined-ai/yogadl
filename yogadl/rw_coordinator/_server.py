@@ -17,9 +17,9 @@ import async_generator
 import logging
 import time
 import urllib.parse
-from typing import Any, Dict, Generator, Optional
+from typing import Any, Dict, AsyncIterator, Optional
 
-import websockets
+from websockets import WebSocketServerProtocol, ConnectionClosedError, serve  # type: ignore
 
 from yogadl.rw_coordinator import communication_protocol
 
@@ -32,7 +32,7 @@ class RWLock:
         self.active_writer = False
 
     @async_generator.asynccontextmanager  # type: ignore
-    async def read_lock(self) -> Generator[str, None, None]:
+    async def read_lock(self) -> AsyncIterator[str]:
         async with self.rw_cond:
             while self.writers_waiting > 0 or self.active_writer:
                 await self.rw_cond.wait()
@@ -46,7 +46,7 @@ class RWLock:
                 self.rw_cond.notify_all()
 
     @async_generator.asynccontextmanager  # type: ignore
-    async def write_lock(self) -> Generator[str, None, None]:
+    async def write_lock(self) -> AsyncIterator[str]:
         async with self.rw_cond:
             self.writers_waiting += 1
             while self.active_readers > 0 or self.active_writer:
@@ -92,7 +92,7 @@ class RwCoordinatorServer:
         self._rw_locks = {}  # type: Dict[str, RWLock]
 
     async def run_server(self) -> None:
-        self._server = await websockets.serve(
+        self._server = await serve(
             self._process_lock_request,
             self._hostname,
             self._port,
@@ -108,7 +108,7 @@ class RwCoordinatorServer:
         self._server.close()
 
     @async_generator.asynccontextmanager  # type: ignore
-    async def _get_lock(self, rw_lock: RWLock, read_lock: bool) -> Generator[str, None, None]:
+    async def _get_lock(self, rw_lock: RWLock, read_lock: bool) -> AsyncIterator[str]:
         if read_lock:
             async with rw_lock.read_lock() as response:
                 yield response
@@ -116,9 +116,7 @@ class RwCoordinatorServer:
             async with rw_lock.write_lock() as response:
                 yield response
 
-    async def _process_lock_request(
-        self, websocket: websockets.server.WebSocketServerProtocol, path: str
-    ) -> None:
+    async def _process_lock_request(self, websocket: WebSocketServerProtocol, path: str) -> None:
         parsed_url = urllib.parse.urlparse(path)
         resource = parsed_url.path
         parsed_query = urllib.parse.parse_qs(parsed_url.query)
@@ -135,6 +133,6 @@ class RwCoordinatorServer:
                 async for _ in websocket:
                     pass
 
-        except websockets.exceptions.ConnectionClosedError:
+        except ConnectionClosedError:
             logging.warning("Client connection closed unexpectedly.")
             pass

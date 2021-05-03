@@ -55,7 +55,7 @@ def test_lmdb_access_keys() -> None:
         assert convert_int_to_byte_string(idx) == key
 
 
-@pytest.mark.parametrize("drop_remainder", [True, False])  # type: ignore
+@pytest.mark.parametrize("drop_remainder", [True, False])
 def test_lmdb_access_keys_sequential_shard(drop_remainder: bool) -> None:
     range_size = 10
     num_shards = 3
@@ -85,7 +85,7 @@ def test_lmdb_access_keys_sequential_shard(drop_remainder: bool) -> None:
         assert convert_int_to_byte_string(idx) == key
 
 
-@pytest.mark.parametrize("drop_remainder", [True, False])  # type: ignore
+@pytest.mark.parametrize("drop_remainder", [True, False])
 def test_lmdb_access_keys_non_sequential_shard(drop_remainder: bool) -> None:
     range_size = 10
     num_shards = 3

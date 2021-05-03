@@ -39,7 +39,8 @@ setup(
         "google-cloud-storage",
         "lmdb",
         "lomond",
-        "websockets",
+        # We use the ConnectionClosedError not present in version 7.
+        "websockets>=8.0",
     ],
     extras_require={"tf": ["tensorflow"]},
     zip_safe=False,
