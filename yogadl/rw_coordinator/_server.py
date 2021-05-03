@@ -19,7 +19,7 @@ import time
 import urllib.parse
 from typing import Any, Dict, AsyncIterator, Optional
 
-from websockets import WebSocketServerProtocol, ConnectionClosedError, serve  # type: ignore
+from websockets import WebSocketServerProtocol, ConnectionClosedError, serve
 
 from yogadl.rw_coordinator import communication_protocol
 

@@ -47,7 +47,7 @@ def worker_using_cacheable(
     assert stream_from_cache.length == data_samples
 
 
-@pytest.mark.gcp  # type: ignore
+@pytest.mark.gcp
 def test_mnist_single_threaded() -> None:
     dataset_id = "mnist"
     dataset_version = "1"
@@ -72,7 +72,7 @@ def test_mnist_single_threaded() -> None:
 
 
 class MultiThreadedTests(thread.ThreadAwareTestCase):  # type: ignore
-    @pytest.mark.gcp  # type: ignore
+    @pytest.mark.gcp
     def test_mnist_multi_threaded(self) -> None:
         dataset_id = "mnist"
         dataset_version = "1"
